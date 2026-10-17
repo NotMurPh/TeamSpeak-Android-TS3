@@ -79,6 +79,7 @@ object ServerResolver {
     }
 
     /** First SRV record (lowest priority) as target host and port. */
+    @android.annotation.SuppressLint("WrongConstant") // rawQuery takes any record type; lint only knows A/AAAA/HTTPS
     private fun srv(name: String): Pair<String, Int>? {
         if (Build.VERSION.SDK_INT < 29) return null
         val future = CompletableFuture<ByteArray?>()

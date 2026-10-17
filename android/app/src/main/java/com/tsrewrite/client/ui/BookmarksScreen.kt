@@ -54,16 +54,18 @@ import androidx.compose.ui.unit.dp
 import com.tsrewrite.client.Bookmark
 import com.tsrewrite.client.Session
 import com.tsrewrite.client.Store
+import com.tsrewrite.client.Updater
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BookmarksScreen(
-    store: Store, session: Session, pendingLink: MutableState<Bookmark?>, lastError: String,
+    store: Store, session: Session, updater: Updater, pendingLink: MutableState<Bookmark?>, lastError: String,
     onIdentities: () -> Unit, onSettings: () -> Unit,
 ) {
     val bookmarks by store.bookmarks.collectAsState()
     var editing by remember { mutableStateOf<Bookmark?>(null) }
     pendingLink.value?.let { editing = it; pendingLink.value = null }
+    androidx.compose.runtime.LaunchedEffect(Unit) { updater.check() }
 
     Scaffold(
         containerColor = Ts.Bg,
@@ -85,6 +87,7 @@ fun BookmarksScreen(
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
+            UpdateCard(updater, Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
             if (lastError.isNotBlank()) {
                 Text(lastError, color = Ts.Red, style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth().background(Ts.Red.copy(alpha = 0.12f), RoundedCornerShape(10.dp)).padding(12.dp))

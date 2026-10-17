@@ -46,9 +46,14 @@ class ConnectionService : Service() {
             .addAction(Notification.Action.Builder(null, "Disconnect", stop).build())
             .setOngoing(true)
             .build()
-        val type = if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED)
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0
-        if (type != 0) startForeground(1, n, type) else startForeground(1, n)
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            val type = if (android.os.Build.VERSION.SDK_INT >= 30 &&
+                checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED)
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            startForeground(1, n, type)
+        } else {
+            startForeground(1, n)
+        }
         wakeLock = getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "tsclient:connection").apply { acquire() }
         // Wi-Fi power saving lets the radio doze between beacons, which adds 100+ ms and heavy jitter to

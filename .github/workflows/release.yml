@@ -154,7 +154,7 @@ jobs:
 
           Third-party notices are embedded under assets/licenses in the APK and included in third-party-licenses.zip. The bundle discloses the known realfft 3.5.0 upstream attribution gap; it is not a complete resolved Gradle classpath license audit.
 
-          SHA256SUMS covers the APK, third-party-licenses.zip, and update.json. update.json is release metadata only; no in-app updater is implemented."
+          SHA256SUMS covers the APK, third-party-licenses.zip, and update.json. The app checks update.json to offer in-app updates."
           fi
           gh release upload "$TAG" teamspeak-android-arm64-v8a.apk third-party-licenses.zip SHA256SUMS update.json --clobber
           gh release edit "$TAG" --draft=false --latest=false

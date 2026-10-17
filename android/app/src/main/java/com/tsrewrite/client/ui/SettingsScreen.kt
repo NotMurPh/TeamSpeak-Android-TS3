@@ -205,8 +205,19 @@ fun SettingsPage(store: Store, session: Session, onBack: () -> Unit) {
                 }
             }
 
-            Text("TS Client ${context.packageManager.getPackageInfo(context.packageName, 0).versionName}",
-                style = MaterialTheme.typography.bodySmall, color = Ts.TextFaint, modifier = Modifier.padding(start = 4.dp))
+            Card("Updates") {
+                val updater = (context.applicationContext as com.tsrewrite.client.App).updater
+                val update by updater.state.collectAsState()
+                Hint("TS Client ${updater.installedVersion}. " + when (val u = update) {
+                    com.tsrewrite.client.UpdateState.Checking -> "Checking…"
+                    com.tsrewrite.client.UpdateState.UpToDate -> "You're up to date."
+                    is com.tsrewrite.client.UpdateState.Failed -> if (u.info == null) u.message else ""
+                    else -> ""
+                })
+                UpdateCard(updater)
+                OutlinedButton(onClick = { updater.check(manual = true) }, enabled = update != com.tsrewrite.client.UpdateState.Checking,
+                    modifier = Modifier.fillMaxWidth()) { Text("Check for updates") }
+            }
         }
     }
 }

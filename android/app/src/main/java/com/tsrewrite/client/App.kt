@@ -9,11 +9,14 @@ class App : Application() {
         private set
     lateinit var badges: BadgeStore
         private set
+    lateinit var updater: Updater
+        private set
 
     override fun onCreate() {
         super.onCreate()
         store = Store(this)
         badges = BadgeStore(this)
         session = Session(this, store)
+        updater = Updater(this)
     }
 }

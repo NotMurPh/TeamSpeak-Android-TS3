@@ -19,6 +19,9 @@ object Notifier {
     private fun post(context: Context, title: String, text: String) {
         val app = context.applicationContext as App
         if (!app.store.settings.value.systemNotifications || inForeground()) return
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED) return
         val nm = context.getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Messages and pokes", NotificationManager.IMPORTANCE_HIGH))
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)

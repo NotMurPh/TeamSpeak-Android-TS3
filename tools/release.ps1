@@ -56,7 +56,12 @@ foreach ($package in $inventory.packages | Where-Object { $_.name -eq "uniffi" -
 Push-Location (Join-Path $root "android")
 try {
     & .\gradlew.bat --no-daemon --console=plain :app:lintRelease :app:assembleRelease "-PciVersionCode=$VersionCode" "-PciVersionName=$VersionName"
-    if ($LASTEXITCODE -ne 0) { throw "Gradle release lint/build failed." }
+    if ($LASTEXITCODE -ne 0) {
+        # Gradle prints only the first lint error; show them all so one CI run is enough to fix them.
+        Get-ChildItem -Path "app/build/intermediates/lint_intermediate_text_report" -Filter "lint-results-*.txt" -Recurse -ErrorAction SilentlyContinue |
+            ForEach-Object { Get-Content -LiteralPath $_.FullName }
+        throw "Gradle release lint/build failed."
+    }
 } finally { Pop-Location }
 $apk = Join-Path $root "android\app\build\outputs\apk\release\app-release.apk"
 if (-not (Test-Path -LiteralPath $apk)) { throw "Gradle did not produce app-release.apk." }

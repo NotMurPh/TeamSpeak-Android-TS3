@@ -17,6 +17,7 @@ An unofficial TS3 client for Android. Join your usual servers, hang out in voice
 - **Tune your audio.** Noise suppression, echo cancellation, automatic gain control and a built-in microphone test.
 - **Use your own setup.** Phone, wired-headset and Bluetooth audio options.
 - **More than voice.** Channel files, server-management tools and local backup/restore. Management actions follow your server permissions.
+- **Always current.** New releases show up in the app, ready to install in a tap or save to your Downloads folder.
 
 ## Preview
 

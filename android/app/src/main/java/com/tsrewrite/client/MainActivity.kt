@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Volume keys act as push-to-talk while connected, if enabled. */
+    @android.annotation.SuppressLint("RestrictedApi") // false positive: this is Activity's public override
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val s = app.store.settings.value
         val connected = app.session.status.value.first == Status.CONNECTED
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity() {
         }
         BackHandler(screen != Screen.Bookmarks) { screen = Screen.Bookmarks }
         when (screen) {
-            Screen.Bookmarks -> BookmarksScreen(app.store, app.session, pendingLink, lastError = status.second,
+            Screen.Bookmarks -> BookmarksScreen(app.store, app.session, app.updater, pendingLink, lastError = status.second,
                 onIdentities = { screen = Screen.Identities }, onSettings = { screen = Screen.Settings })
             Screen.Identities -> IdentitiesScreen(app.store) { screen = Screen.Bookmarks }
             Screen.Settings -> SettingsPage(app.store, app.session) { screen = Screen.Bookmarks }

@@ -52,6 +52,6 @@ try {
     # Bindings come from the unstripped host build; the release .so has its metadata stripped.
     cargo build --locked -q -p tscore
     if ($LASTEXITCODE -ne 0) { throw "host build failed" }
-    cargo run --locked -q -p uniffi-bindgen -- generate --library target/debug/tscore.dll --language kotlin --out-dir android/app/src/main/java --no-format
+    cargo run --locked -q -p uniffi-bindgen -- generate --library target/debug/tscore.dll --config core/uniffi.toml --language kotlin --out-dir android/app/src/main/java --no-format
     if ($LASTEXITCODE -ne 0) { throw "uniffi-bindgen failed" }
 } finally { Pop-Location }
