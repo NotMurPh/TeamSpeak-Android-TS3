@@ -162,7 +162,7 @@ class Updater(private val context: Context) {
         check(json.getString("applicationId") == context.packageName) { "update is for another app" }
         check(json.getInt("minSdk") <= Build.VERSION.SDK_INT) { "update needs a newer Android version" }
         check(json.getString("abi") in Build.SUPPORTED_ABIS) { "update is for another processor type" }
-        check(info.downloadUrl.startsWith(DOWNLOAD_PREFIX)) { "unexpected download location" }
+        check(info.downloadUrl.startsWith(DOWNLOAD_PREFIX, ignoreCase = true)) // GitHub paths ignore case { "unexpected download location" }
         check(info.sha256.matches(Regex("[0-9a-f]{64}"))) { "invalid checksum" }
         return info
     }
@@ -243,7 +243,7 @@ class Updater(private val context: Context) {
 
     companion object {
         private const val TAG = "Updater"
-        private const val REPO = "NotMurPh/teamspeak-android-ts3"
+        private const val REPO = "NotMurPh/TeamSpeak-Android-TS3"
         private const val UPDATE_URL = "https://github.com/$REPO/releases/latest/download/update.json"
         private const val DOWNLOAD_PREFIX = "https://github.com/$REPO/releases/download/"
         private const val APK_MIME = "application/vnd.android.package-archive"
