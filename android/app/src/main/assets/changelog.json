@@ -1,5 +1,13 @@
 [
   {
+    "build": 13,
+    "date": "2026-10-18",
+    "title": "Faster releases",
+    "changes": [
+      ["improved", "New versions are published minutes after they're ready."]
+    ]
+  },
+  {
     "build": 12,
     "date": "2026-10-18",
     "title": "Cleaner version numbers",

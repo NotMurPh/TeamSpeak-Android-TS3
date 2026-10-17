@@ -1,8 +1,8 @@
 name: Android Release
 
+# Releases are normally built and published locally with tools/publish.ps1; this workflow is the
+# optional, slower alternative (Actions > Android Release > Run workflow).
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,10 +19,25 @@ jobs:
     timeout-minutes: 90
     outputs:
       artifact-id: ${{ steps.assets.outputs.artifact-id }}
+      number: ${{ steps.number.outputs.number }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
+
+      # The next number after every release so far, local ones included (same rule as tools/publish.ps1).
+      - name: Pick release number
+        id: number
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          last=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[].tag_name' |
+            sed -n 's/^build-\([0-9][0-9]*\)$/\1/p' | sort -n | tail -1)
+          n=$(( ${last:-0} + 1 ))
+          echo "number=$n" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_NUMBER=$n" >> "$GITHUB_ENV"
 
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
         with:
@@ -87,9 +102,9 @@ jobs:
               if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64)) { throw "ANDROID_KEYSTORE_BASE64 is required." }
               [IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
               $env:ANDROID_KEYSTORE_PATH = $keystore
-              & ./tools/release.ps1 -VersionCode (1000 + [int]$env:GITHUB_RUN_NUMBER) `
-                  -VersionName "$env:VERSION_PREFIX.$env:GITHUB_RUN_NUMBER" `
-                  -Commit $env:GITHUB_SHA -Repository $env:GITHUB_REPOSITORY -Tag "build-$env:GITHUB_RUN_NUMBER"
+              & ./tools/release.ps1 -VersionCode (1000 + [int]$env:RELEASE_NUMBER) `
+                  -VersionName "$env:VERSION_PREFIX.$env:RELEASE_NUMBER" `
+                  -Commit $env:GITHUB_SHA -Repository $env:GITHUB_REPOSITORY -Tag "build-$env:RELEASE_NUMBER"
           } finally {
               if (Test-Path -LiteralPath $keystore) { Remove-Item -LiteralPath $keystore -Force }
               Remove-Item Env:ANDROID_KEYSTORE_PATH -ErrorAction SilentlyContinue
@@ -154,8 +169,10 @@ jobs:
     permissions:
       contents: write
     concurrency:
-      group: release-publish-${{ github.run_number }}
+      group: release-publish-${{ needs.build.outputs.number }}
       cancel-in-progress: false
+    env:
+      RELEASE_NUMBER: ${{ needs.build.outputs.number }}
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -170,9 +187,9 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          TAG="build-$GITHUB_RUN_NUMBER"
-          VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))
-          VERSION_NAME="$VERSION_PREFIX.$GITHUB_RUN_NUMBER"
+          TAG="build-$RELEASE_NUMBER"
+          VERSION_CODE=$((1000 + RELEASE_NUMBER))
+          VERSION_NAME="$VERSION_PREFIX.$RELEASE_NUMBER"
           cd dist
           sha256sum --check SHA256SUMS
           jq -e --arg commit "$GITHUB_SHA" --argjson code "$VERSION_CODE" --arg name "$VERSION_NAME" \
