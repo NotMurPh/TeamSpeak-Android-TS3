@@ -43,6 +43,8 @@ Protect `main` and review changes to the workflow, build scripts, and dependenci
 
 All project Cargo build, test, and binding-generation calls use `--locked`. The native script initializes the latest Visual Studio installation containing the x64 C++ tools, loads its developer environment, and uses Ninja/CMake for Opus. It selects the exact NDK under `ANDROID_HOME`, never the newest installed NDK, and checks that cargo-ndk produces `libtscore.so`. The unstripped host DLL supplies UniFFI metadata. CI rejects regenerated Kotlin bindings that differ from checked-in source, including untracked generated files.
 
+The dev profile optimizes `audiopus_sys` so its bundled Opus uses CMake's `RelWithDebInfo` rather than `Debug`. This keeps the Windows C runtime consistent with Rust's release CRT while retaining the host DLL's UniFFI metadata.
+
 Actions are pinned to the following official release commits, verified during peer review:
 
 | Action | Release | Commit |

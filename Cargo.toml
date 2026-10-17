@@ -13,6 +13,10 @@ tracing = "0.1"
 anyhow = "1"
 uniffi = "0.32"
 
+# Opus must use the release CRT even in the unstripped Windows binding-generator build.
+[profile.dev.package.audiopus_sys]
+opt-level = 1
+
 [profile.release]
 opt-level = 3
 lto = "thin"
