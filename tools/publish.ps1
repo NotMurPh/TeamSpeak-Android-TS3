@@ -47,9 +47,12 @@ try {
     }
 
     # Release notes: this version's entry in the in-app changelog, if there is one.
-    $entry = Get-Content "android\app\src\main\assets\changelog.json" -Raw | ConvertFrom-Json | Where-Object { $_.build -eq $n } | Select-Object -First 1
+    # Assigned first: Windows PowerShell passes a parsed JSON array down the pipeline as one item.
+    $releases = Get-Content "android\app\src\main\assets\changelog.json" -Raw | ConvertFrom-Json
+    $entry = $releases | Where-Object { $_.build -eq $n } | Select-Object -First 1
+    $labels = @{ new = "New"; fixed = "Fixed"; improved = "Improved" }
     $notes = if ($entry) {
-        "## $($entry.title)`n`n" + (($entry.changes | ForEach-Object { "- **$($_[0])** $($_[1])" }) -join "`n")
+        "## $($entry.title)`n`n" + (($entry.changes | ForEach-Object { "- **$($labels[$_[0]])** $($_[1])" }) -join "`n")
     } else { "Android 8+ (API 26), arm64-v8a." }
     $notes += "`n`nInstall ``$assetName``, or update from inside the app.`n"
     $notesFile = Join-Path ([IO.Path]::GetTempPath()) "release-notes-$n.md"
