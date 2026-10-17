@@ -9,7 +9,8 @@ permissions:
   contents: read
 
 env:
-  BASE_VERSION: 0.1.0
+  # Versions read v0.1.<run number>; the run number also makes the version code (1000 + run).
+  VERSION_PREFIX: '0.1'
 
 jobs:
   build:
@@ -87,7 +88,7 @@ jobs:
               [IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
               $env:ANDROID_KEYSTORE_PATH = $keystore
               & ./tools/release.ps1 -VersionCode (1000 + [int]$env:GITHUB_RUN_NUMBER) `
-                  -VersionName "$env:BASE_VERSION+build.$env:GITHUB_RUN_NUMBER" `
+                  -VersionName "$env:VERSION_PREFIX.$env:GITHUB_RUN_NUMBER" `
                   -Commit $env:GITHUB_SHA -Repository $env:GITHUB_REPOSITORY -Tag "build-$env:GITHUB_RUN_NUMBER"
           } finally {
               if (Test-Path -LiteralPath $keystore) { Remove-Item -LiteralPath $keystore -Force }
@@ -171,7 +172,7 @@ jobs:
           set -euo pipefail
           TAG="build-$GITHUB_RUN_NUMBER"
           VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))
-          VERSION_NAME="$BASE_VERSION+build.$GITHUB_RUN_NUMBER"
+          VERSION_NAME="$VERSION_PREFIX.$GITHUB_RUN_NUMBER"
           cd dist
           sha256sum --check SHA256SUMS
           jq -e --arg commit "$GITHUB_SHA" --argjson code "$VERSION_CODE" --arg name "$VERSION_NAME" \
@@ -194,7 +195,7 @@ jobs:
           if [[ -n "$existing" ]]; then
             test "$(jq -r .target_commitish <<< "$existing")" = "$GITHUB_SHA"
           else
-            gh release create "$TAG" --target "$GITHUB_SHA" --draft --latest=false --title "$VERSION_NAME" \
+            gh release create "$TAG" --target "$GITHUB_SHA" --draft --latest=false --title "v$VERSION_NAME" \
               --notes "Android 8+ (API 26), arm64-v8a. Version code: $VERSION_CODE. Commit: $GITHUB_SHA.
 
           First dedicated-key release: if you have an older debug-signed app, export its backup BEFORE uninstalling it. The new certificate requires one reinstall; import your backup afterward. Subsequent releases signed with this key can update normally.

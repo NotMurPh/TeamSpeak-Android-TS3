@@ -55,7 +55,8 @@ class Updater(private val context: Context) {
     private var job: Job? = null
     private val dir get() = File(context.cacheDir, "update")
 
-    val installedVersion: String get() = packageInfo().versionName ?: "?"
+    /** As shown to people, e.g. "v0.1.12". */
+    val installedVersion: String get() = displayVersion(packageInfo().versionName ?: "?")
 
     private var lastCheck = 0L
 
@@ -108,7 +109,7 @@ class Updater(private val context: Context) {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } else {
             val request = DownloadManager.Request(uri)
-                .setTitle("TS Client ${info.versionName}")
+                .setTitle("TS Client ${displayVersion(info.versionName)}")
                 .setMimeType(APK_MIME)
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "TS-Client-${info.versionCode}.apk")
@@ -258,6 +259,10 @@ class Updater(private val context: Context) {
         private const val APK_MIME = "application/vnd.android.package-archive"
     }
 }
+
+/** "0.1.12" -> "v0.1.12"; early releases were named "0.1.0+build.11" -> "v0.1.11". */
+fun displayVersion(name: String): String =
+    "v" + (Regex("""^(\d+\.\d+)\.\d+\+build\.(\d+)$""").find(name)?.let { "${it.groupValues[1]}.${it.groupValues[2]}" } ?: name)
 
 class InstallResultReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

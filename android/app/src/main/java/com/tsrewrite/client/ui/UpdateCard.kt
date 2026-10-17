@@ -84,7 +84,7 @@ fun UpdateCard(updater: Updater, modifier: Modifier = Modifier) {
             Icon(Icons.Default.SystemUpdate, null, tint = Ts.Blue)
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
                 Text("Update available", fontWeight = FontWeight.Medium)
-                Text("${updater.installedVersion} → ${info.versionName}", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
+                Text("${updater.installedVersion} → ${com.tsrewrite.client.displayVersion(info.versionName)}", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
             }
             if (state !is UpdateState.Downloading && state !is UpdateState.Installing) {
                 IconButton(onClick = updater::dismiss) { Icon(Icons.Default.Close, "Later", tint = Ts.TextDim) }

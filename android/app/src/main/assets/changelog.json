@@ -1,5 +1,13 @@
 [
   {
+    "build": 12,
+    "date": "2026-10-18",
+    "title": "Cleaner version numbers",
+    "changes": [
+      ["improved", "Versions read like v0.1.12 instead of 0.1.0+build.12."]
+    ]
+  },
+  {
     "build": 11,
     "date": "2026-10-17",
     "title": "Patch notes",

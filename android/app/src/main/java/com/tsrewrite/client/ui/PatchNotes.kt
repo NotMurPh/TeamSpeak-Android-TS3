@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.NewReleases
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,9 +50,10 @@ private fun loadReleases(context: Context): List<Release> = runCatching {
     }
 }.getOrDefault(emptyList())
 
-/** "0.1.0+build.11" -> 11; 0 for local builds. */
+/** Release number of this install: version code 1000 + n for releases; 0 for local builds. */
+@Suppress("DEPRECATION")
 private fun installedBuild(context: Context): Int =
-    context.packageManager.getPackageInfo(context.packageName, 0).versionName?.substringAfterLast("build.", "")?.toIntOrNull() ?: 0
+    (context.packageManager.getPackageInfo(context.packageName, 0).versionCode - 1000).coerceAtLeast(0)
 
 /** Top-bar button for the patch notes; a dot marks notes not opened since the last update. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +68,7 @@ fun PatchNotesButton() {
 
     IconButton(onClick = { open = true; unseen = false; prefs.edit().putInt("notesSeen", newest).apply() }) {
         Box {
-            Icon(Icons.Outlined.NewReleases, "What's new")
+            Icon(Icons.Rounded.AutoAwesome, "What's new")
             if (unseen) Box(Modifier.align(Alignment.TopEnd).size(9.dp).background(Ts.Blue, CircleShape))
         }
     }
@@ -104,7 +105,7 @@ private fun ReleaseCard(r: Release, current: Boolean) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(r.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("Build ${r.build} · ${r.date}", style = MaterialTheme.typography.labelMedium, color = Ts.TextDim)
+                Text("v0.1.${r.build} · ${r.date}", style = MaterialTheme.typography.labelMedium, color = Ts.TextDim)
             }
             if (current) Chip("Installed", Ts.Green)
         }

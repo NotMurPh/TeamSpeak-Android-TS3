@@ -67,7 +67,9 @@ class IconStore(private val context: Context, private val session: Session) {
             val d = urgent.tryReceive().getOrNull() ?: select { urgent.onReceive { it }; normal.onReceive { it } }
             if (d.file.exists() && d.file.length() > 0) { d.done(d.file); continue }
             val err = try {
-                withTimeoutOrNull(15_000) { session.download(0u, d.path, "", d.file) } ?: "timed out"
+                // download() returns null on success; wrapped, a null outcome can only mean the timeout.
+                val outcome = withTimeoutOrNull(15_000) { Result.success(session.download(0u, d.path, "", d.file)) }
+                if (outcome == null) TIMED_OUT else outcome.getOrNull()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -144,7 +146,10 @@ class IconStore(private val context: Context, private val session: Session) {
 
     private fun scale(b: Bitmap): Bitmap = if (b.width > 256) Bitmap.createScaledBitmap(b, 256, 256 * b.height / b.width, true) else b
 
-    companion object { private const val TAG = "IconStore" }
+    companion object {
+        private const val TAG = "IconStore"
+        private const val TIMED_OUT = "timed out"
+    }
 
     private fun md5(s: String) = MessageDigest.getInstance("MD5").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
 }
