@@ -420,7 +420,7 @@ impl TsClient {
 
     // ---- moderation ----
 
-    /// `password` is the plain channel password; it is hashed when sent.
+    // `password` is the plain channel password; build_command hashes it.
     pub fn move_client(&self, client_id: u16, channel_id: u64, password: Option<String>) -> u32 {
         let mut args = vec![("clid", client_id.to_string()), ("cid", channel_id.to_string())];
         if let Some(p) = password.filter(|p| !p.is_empty()) {
