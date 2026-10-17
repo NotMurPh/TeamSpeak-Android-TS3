@@ -2739,6 +2739,7 @@ dependencies = [
  "tracing-subscriber",
  "tsclientlib",
  "tsproto-packets",
+ "tsproto-types",
  "uniffi",
 ]
 

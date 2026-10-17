@@ -180,7 +180,7 @@ private fun TreePage(session: Session, store: Store, badgeStore: com.tsrewrite.c
         Column(Modifier.padding(pad).fillMaxSize()) {
             val v = server
             LaunchedEffect(v) { v?.clients?.forEach { c -> badgeStore.parse(c.badges).forEach(badgeStore::load) } }
-            if (v == null) Loading() else ChannelTree(
+            if (v == null) Connecting(session) else ChannelTree(
                 v, talking, icons, badgeImages, badgeStore::parse, settings, selection,
                 onSelect = { selection = it },
                 onActivate = { sel ->
@@ -378,6 +378,24 @@ private fun VoiceDock(session: Session, store: Store) {
                 Icon(Icons.Rounded.CallEnd, "Disconnect", tint = Color.White)
             }
         }
+    }
+}
+
+/** Until the channel list arrives: what is happening, and a way out. */
+@Composable
+private fun Connecting(session: Session) {
+    val status by session.status.collectAsState()
+    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        androidx.compose.material3.CircularProgressIndicator(color = Ts.Blue)
+        Spacer(Modifier.height(20.dp))
+        Text(if (status.first == Status.RECONNECTING) "Reconnecting…" else "Connecting…", style = MaterialTheme.typography.titleMedium)
+        // The core reports the address, or what it is doing (e.g. improving the identity level).
+        if (status.second.isNotBlank()) {
+            Text(status.second, style = MaterialTheme.typography.bodySmall, color = Ts.TextDim,
+                modifier = Modifier.padding(top = 6.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        }
+        Spacer(Modifier.height(20.dp))
+        androidx.compose.material3.OutlinedButton(onClick = { session.disconnect() }) { Text("Cancel") }
     }
 }
 

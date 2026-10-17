@@ -57,10 +57,19 @@ class Updater(private val context: Context) {
 
     val installedVersion: String get() = packageInfo().versionName ?: "?"
 
-    /** [manual] also reports "up to date" and errors; the launch check stays quiet unless there is an update. */
+    private var lastCheck = 0L
+
+    /**
+     * [manual] also reports "up to date" and errors; the automatic check (each time the server list opens,
+     * at most once a minute) stays quiet unless there is an update.
+     */
     fun check(manual: Boolean = false) {
         if (job?.isActive == true) return
-        if (!manual && _state.value != UpdateState.Idle) return
+        if (!manual) {
+            if (_state.value != UpdateState.Idle && _state.value != UpdateState.UpToDate) return
+            if (System.currentTimeMillis() - lastCheck < 60_000) return
+        }
+        lastCheck = System.currentTimeMillis()
         job = scope.launch {
             _state.value = UpdateState.Checking
             _state.value = try {

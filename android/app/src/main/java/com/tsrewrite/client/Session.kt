@@ -68,6 +68,9 @@ class Session(private val context: Context, private val store: Store) : EventLis
 
     private val _status = MutableStateFlow(Status.DISCONNECTED to "")
     val status: StateFlow<Pair<Status, String>> = _status
+    private val _active = MutableStateFlow(false)
+    /** A connection is wanted: connecting, connected or waiting to reconnect. The service lives this long. */
+    val active: StateFlow<Boolean> = _active
     private val _server = MutableStateFlow<ServerView?>(null)
     val server: StateFlow<ServerView?> = _server
     private val _talking = MutableStateFlow<Map<UShort, Boolean>>(emptyMap()) // id -> whispering
@@ -109,8 +112,15 @@ class Session(private val context: Context, private val store: Store) : EventLis
         private set
     private var identityId = ""
     private var audio: AudioEngine? = null
-    private var userDisconnect = false
+    @Volatile private var userDisconnect = false
     private var reconnectAttempt = 0
+    /** This bookmark's connection worked since the user connected; only then a lost one reconnects. */
+    private var hadConnected = false
+    private var reconnectJob: kotlinx.coroutines.Job? = null
+    /** Bumped by every connect and disconnect, so a connect still resolving its address can be cancelled. */
+    @Volatile private var attempt = 0
+    /** The previous connection is being closed for a new one; its "disconnected" is not ours. */
+    @Volatile private var replacing = false
 
     private val pending = ConcurrentHashMap<UInt, CompletableDeferred<CommandFailure?>>()
     private val transferWaits = ConcurrentHashMap<UInt, CompletableDeferred<String?>>()
@@ -118,8 +128,11 @@ class Session(private val context: Context, private val store: Store) : EventLis
     private val collectors = CopyOnWriteArrayList<Collector>()
 
     fun connect(b: Bookmark) {
+        if (b.id != bookmark?.id) { reconnectAttempt = 0; hadConnected = false }
         bookmark = b
         userDisconnect = false
+        reconnectJob?.cancel()
+        val mine = ++attempt
         val id = store.identity(b.identityId)
         identityId = id.id
         _chats.value = emptyChats()
@@ -138,19 +151,36 @@ class Session(private val context: Context, private val store: Store) : EventLis
             inputMuted = false, outputMuted = false, subscribeAll = b.subscribeAll,
         )
         _status.value = Status.CONNECTING to b.address
-        ContextCompat.startForegroundService(context, Intent(context, ConnectionService::class.java))
-        // connect() first tears down any previous session, which may block briefly.
+        _active.value = true
+        // Also when it already runs: each start re-posts its notification, so this never races its shutdown.
+        runCatching { ContextCompat.startForegroundService(context, Intent(context, ConnectionService::class.java)) }
+            .onFailure { Log.w(TAG, "connection service", it) }
         Thread {
+            // Close the previous session first (this may block briefly); its callbacks are queued before
+            // the reset below, so its "disconnected" is ignored instead of ending this attempt.
+            replacing = true
+            client.disconnect("")
+            scope.launch(serial) { replacing = false }
             val resolved = ServerResolver.resolve(options.address)
             Log.i(TAG, "resolved ${options.address} -> $resolved")
+            if (attempt != mine) return@Thread // cancelled while resolving
             runCatching { client.connect(options.copy(address = resolved)) }
                 .onFailure { onStatus(Status.DISCONNECTED, it.message ?: "connect failed") }
         }.start()
     }
 
+    /** Disconnects, or cancels connecting and reconnecting. */
     fun disconnect() {
         userDisconnect = true
-        Thread { client.disconnect(store.settings.value.quitMessage) }.start()
+        attempt++
+        reconnectJob?.cancel()
+        reconnectAttempt = 0
+        hadConnected = false
+        Thread {
+            client.disconnect(store.settings.value.quitMessage)
+            // Without a running session (still resolving, or waiting to reconnect) nothing else reports it.
+            scope.launch(serial) { if (_status.value.first != Status.DISCONNECTED) handleStatus(Status.DISCONNECTED, "") }
+        }.start()
     }
 
     fun applySettings() {
@@ -357,10 +387,12 @@ class Session(private val context: Context, private val store: Store) : EventLis
 
     private fun handleStatus(status: Status, message: String) {
         Log.i(TAG, "status $status $message")
-        _status.value = status to message
+        if (status == Status.DISCONNECTED && replacing) return
+        if (status != Status.DISCONNECTED) _status.value = status to message
         when (status) {
             Status.CONNECTED -> {
                 reconnectAttempt = 0
+                hadConnected = true
                 scope.launch { delay(1500); syncAvatar() }
                 scope.launch {
                     while (_status.value.first == Status.CONNECTED) {
@@ -379,24 +411,31 @@ class Session(private val context: Context, private val store: Store) : EventLis
                 _talking.value = emptyMap()
                 pending.values.forEach { it.complete(CommandFailure(0u, "NotConnected", null)) }
                 transferWaits.values.forEach { it.complete("disconnected") }
-                if (!userDisconnect) {
-                    sounds.event(SoundManager.Cue.DISCONNECTED, null)
-                    maybeReconnect(message)
+                if (!userDisconnect) sounds.event(SoundManager.Cue.DISCONNECTED, null)
+                if (!userDisconnect && maybeReconnect(message)) {
+                    _status.value = Status.RECONNECTING to "Reconnecting in a moment (attempt $reconnectAttempt of $MAX_RECONNECTS)"
+                } else {
+                    _status.value = status to message
+                    _active.value = false
                 }
             }
             Status.CONNECTING -> if (message.isNotBlank() && !message.contains(':')) addLog(message)
         }
     }
 
-    private fun maybeReconnect(reason: String) {
-        val b = bookmark ?: return
-        val kicked = reason.contains("kicked") || reason.contains("banned")
-        if (!store.settings.value.autoReconnect || kicked || reconnectAttempt >= 10) return
+    /** Schedules a reconnect after a lost connection; false when it gives up. */
+    private fun maybeReconnect(reason: String): Boolean {
+        val b = bookmark ?: return false
+        val kicked = reason.contains("kicked", true) || reason.contains("banned", true)
+        // Only connections that worked before come back by themselves; a first attempt that fails reports why.
+        if (!store.settings.value.autoReconnect || kicked || !hadConnected || reconnectAttempt >= MAX_RECONNECTS) return false
         reconnectAttempt++
-        scope.launch {
-            delay(minOf(30_000L, 2_000L * reconnectAttempt))
-            if (_status.value.first == Status.DISCONNECTED && !userDisconnect) connect(b)
+        val mine = attempt
+        reconnectJob = scope.launch {
+            delay(minOf(20_000L, 2_000L * reconnectAttempt))
+            if (attempt == mine && !userDisconnect) connect(b)
         }
+        return true
     }
 
     private fun handleStateChanged() {
@@ -505,6 +544,7 @@ class Session(private val context: Context, private val store: Store) : EventLis
 
     companion object {
         private const val TAG = "Session"
+        private const val MAX_RECONNECTS = 5
         /** "[cspacer0]" etc. in channel names; the log shows the plain name. */
         private val SPACER_TAG = Regex("""\[[*clr]?spacer[^\]]*]""")
     }

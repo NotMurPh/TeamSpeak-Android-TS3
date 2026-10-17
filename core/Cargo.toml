@@ -10,6 +10,7 @@ name = "tscore"
 [dependencies]
 tsclientlib.workspace = true
 tsproto-packets.workspace = true
+tsproto-types.workspace = true
 audiopus.workspace = true
 tokio.workspace = true
 futures.workspace = true

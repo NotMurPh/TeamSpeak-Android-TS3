@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import uniffi.tscore.Status
 
 /** Keeps the connection and audio alive while the app is in the background; stops itself on disconnect. */
 class ConnectionService : Service() {
@@ -33,27 +32,8 @@ class ConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Connection", NotificationManager.IMPORTANCE_LOW))
         val app = application as App
-        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
-        val stop = PendingIntent.getService(this, 1, Intent(this, ConnectionService::class.java).setAction(ACTION_DISCONNECT), PendingIntent.FLAG_IMMUTABLE)
-        val n = Notification.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(app.session.bookmark?.label?.ifBlank { null } ?: app.session.bookmark?.address ?: "Connected")
-            .setContentText("Connected")
-            .setContentIntent(open)
-            .addAction(Notification.Action.Builder(null, "Disconnect", stop).build())
-            .setOngoing(true)
-            .build()
-        if (android.os.Build.VERSION.SDK_INT >= 29) {
-            val type = if (android.os.Build.VERSION.SDK_INT >= 30 &&
-                checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED)
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            startForeground(1, n, type)
-        } else {
-            startForeground(1, n)
-        }
+        goForeground()
         wakeLock = getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "tsclient:connection").apply { acquire() }
         // Wi-Fi power saving lets the radio doze between beacons, which adds 100+ ms and heavy jitter to
@@ -78,16 +58,47 @@ class ConnectionService : Service() {
                 isActive = true
             }
         }
-        // Stopping only from here avoids stopService() racing startForeground().
+        // Stopping only from here avoids stopService() racing startForeground(). It follows "a connection is
+        // wanted", not the status: switching servers or reconnecting passes through "disconnected" and must
+        // keep voice running. A connect started meanwhile sends a newer start id, which keeps the service.
         scope.launch {
-            app.session.status.first { it.first == Status.DISCONNECTED }
-            stopSelf()
+            app.session.active.first { !it }
+            stopSelf(lastStartId)
         }
     }
 
+    private var lastStartId = 0
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        lastStartId = startId
+        // Every startForegroundService() call needs its own startForeground().
+        goForeground()
         if (intent?.action == ACTION_DISCONNECT) (application as App).session.disconnect()
         return START_NOT_STICKY
+    }
+
+    private fun goForeground() {
+        val app = application as App
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Connection", NotificationManager.IMPORTANCE_LOW))
+        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val stop = PendingIntent.getService(this, 1, Intent(this, ConnectionService::class.java).setAction(ACTION_DISCONNECT), PendingIntent.FLAG_IMMUTABLE)
+        val n = Notification.Builder(this, CHANNEL)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(app.session.bookmark?.label?.ifBlank { null } ?: app.session.bookmark?.address ?: "Connected")
+            .setContentText("Connected")
+            .setContentIntent(open)
+            .addAction(Notification.Action.Builder(null, "Disconnect", stop).build())
+            .setOngoing(true)
+            .build()
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            val type = if (android.os.Build.VERSION.SDK_INT >= 30 &&
+                checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED)
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            startForeground(1, n, type)
+        } else {
+            startForeground(1, n)
+        }
     }
 
     override fun onDestroy() {

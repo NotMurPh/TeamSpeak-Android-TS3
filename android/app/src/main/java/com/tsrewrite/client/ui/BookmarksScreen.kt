@@ -65,7 +65,8 @@ fun BookmarksScreen(
     val bookmarks by store.bookmarks.collectAsState()
     var editing by remember { mutableStateOf<Bookmark?>(null) }
     pendingLink.value?.let { editing = it; pendingLink.value = null }
-    androidx.compose.runtime.LaunchedEffect(Unit) { updater.check() }
+    var askNickname by remember { mutableStateOf(store.shouldAskNickname) }
+    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) { updater.check(); onPauseOrDispose {} }
 
     Scaffold(
         containerColor = Ts.Bg,
@@ -74,6 +75,7 @@ fun BookmarksScreen(
                 title = { Text("TS Client", fontWeight = FontWeight.SemiBold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Ts.Bg),
                 actions = {
+                    UpdateButton(updater)
                     IconButton(onClick = onIdentities) { Icon(Icons.Default.Badge, "Identities") }
                     IconButton(onClick = onSettings) { Icon(Icons.Default.Settings, "Settings") }
                 },
@@ -87,7 +89,6 @@ fun BookmarksScreen(
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            UpdateCard(updater, Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
             if (lastError.isNotBlank()) {
                 Text(lastError, color = Ts.Red, style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth().background(Ts.Red.copy(alpha = 0.12f), RoundedCornerShape(10.dp)).padding(12.dp))
@@ -136,6 +137,11 @@ fun BookmarksScreen(
             }
         }
     }
+
+    if (askNickname) NicknameDialog(
+        onDismiss = { askNickname = false; store.nicknameAsked() },
+        onOk = { name -> askNickname = false; store.nicknameAsked(); store.updateSettings(store.settings.value.copy(defaultNickname = name)) },
+    )
 
     editing?.let { b ->
         BookmarkSheet(store, b, onDismiss = { editing = null }, onSave = { store.upsertBookmark(it); editing = null },
@@ -191,4 +197,24 @@ private fun Bookmark.withLabel(initial: Bookmark) = when {
     label.isBlank() -> copy(label = address.trim())
     address.trim() != initial.address.trim() -> copy(label = address.trim(), iconPath = "")
     else -> this
+}
+
+/** First launch: replaces "Android User" so people don't all join with the same name. */
+@Composable
+private fun NicknameDialog(onDismiss: () -> Unit, onOk: (String) -> Unit) {
+    var name by remember { mutableStateOf("") }
+    val valid = name.trim().length in 3..30 // the server's limits
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Choose your nickname") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("This is how others see you on servers. You can change it later in Settings.",
+                    style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
+                Field("Nickname (3–30 characters)", name) { name = it }
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(enabled = valid, onClick = { onOk(name.trim()) }) { Text("Save") } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Later") } },
+    )
 }

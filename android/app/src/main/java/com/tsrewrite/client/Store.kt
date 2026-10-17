@@ -94,12 +94,23 @@ class Store(context: Context) {
             updateSettings(_settings.value.copy(bitrate = 96000))
             prefs.edit().putBoolean("qualityV2", true).apply()
         }
+        // Start with ts22.ir in the list (once; deleting it is respected).
+        if (!prefs.getBoolean("seededTs22", false)) {
+            if (_bookmarks.value.none { it.address.trim().equals("ts22.ir", ignoreCase = true) }) upsertBookmark(Bookmark(label = "ts22.ir", address = "ts22.ir"))
+            prefs.edit().putBoolean("seededTs22", true).apply()
+        }
         if (_identities.value.isEmpty()) {
             val id = Identity(name = "Default", data = createIdentity())
             saveIdentities(listOf(id))
             updateSettings(_settings.value.copy(defaultIdentityId = id.id))
         }
     }
+
+    /** True until the user has been asked once to replace the default nickname. */
+    val shouldAskNickname: Boolean
+        get() = !prefs.getBoolean("askedNickname", false) && _settings.value.defaultNickname == Settings().defaultNickname
+
+    fun nicknameAsked() = prefs.edit().putBoolean("askedNickname", true).apply()
 
     fun upsertBookmark(b: Bookmark) = saveBookmarks(_bookmarks.value.filter { it.id != b.id } + b)
     fun replaceAll(bookmarks: List<Bookmark>, identities: List<Identity>) { saveBookmarks(bookmarks); saveIdentities(identities) }

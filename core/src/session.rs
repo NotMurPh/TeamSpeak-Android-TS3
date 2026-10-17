@@ -23,6 +23,9 @@ use crate::{
 
 /// Client additions right after connecting are the initial client list, not joins.
 const INITIAL_QUIET: Duration = Duration::from_secs(2);
+/// Give up when a server does not answer; the library itself would keep trying for minutes.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(20);
+const RECONNECT_TIMEOUT: Duration = Duration::from_secs(60);
 
 pub fn run(
     opts: ConnectOptions, identity: Identity, shared: Arc<Shared>, listener: Arc<dyn EventListener>,
@@ -45,6 +48,7 @@ pub fn run(
 enum Step {
     Cmd(Option<Cmd>),
     Ev(Option<Result<StreamItem, tsclientlib::Error>>),
+    Timeout,
 }
 
 enum Transfer {
@@ -91,15 +95,32 @@ async fn session(
     let mut reason = String::new();
     let mut requests: HashMap<u16, u32> = HashMap::new();
     let mut transfers: HashMap<u16, Transfer> = HashMap::new();
+    // While connecting or reconnecting: when to give up. None while connected or improving the identity.
+    let mut deadline = Some(tokio::time::Instant::now() + CONNECT_TIMEOUT);
+    let mut was_connected = false;
     loop {
         let step = {
             let mut events = con.events();
+            let expiry = async {
+                match deadline {
+                    Some(d) => tokio::time::sleep_until(d).await,
+                    None => future::pending().await,
+                }
+            };
             tokio::select! {
                 cmd = rx.recv() => Step::Cmd(cmd),
                 ev = events.next() => Step::Ev(ev),
+                _ = expiry => Step::Timeout,
             }
         };
         match step {
+            Step::Timeout => {
+                return if was_connected {
+                    "Connection lost: the server stopped answering".into()
+                } else {
+                    format!("No answer from {} (timed out after {} s)", opts.address, CONNECT_TIMEOUT.as_secs())
+                };
+            }
             Step::Cmd(None) | Step::Cmd(Some(Cmd::Disconnect(_))) => {
                 let msg = match step {
                     Step::Cmd(Some(Cmd::Disconnect(m))) => m,
@@ -151,6 +172,8 @@ async fn session(
             }
             Step::Ev(Some(Ok(item))) => match item {
                 StreamItem::BookEvents(events) => {
+                    deadline = None;
+                    was_connected = true;
                     if connected_at.is_none() {
                         connected_at = Some(Instant::now());
                         listener.on_status(Status::Connected, String::new());
@@ -225,6 +248,7 @@ async fn session(
                 StreamItem::DisconnectedTemporarily(r) => {
                     listener.on_status(Status::Reconnecting, format!("{r:?}"));
                     connected_at = None;
+                    deadline = Some(tokio::time::Instant::now() + RECONNECT_TIMEOUT);
                     shared.playback.lock().unwrap().reset();
                 }
                 StreamItem::AudioChange(_) => {
@@ -255,9 +279,11 @@ async fn session(
                     }
                 }
                 StreamItem::IdentityLevelIncreasing(level) => {
+                    deadline = None; // computing a higher level can take a while on a phone
                     listener.on_status(Status::Connecting, format!("Improving identity to level {level}"));
                 }
                 StreamItem::IdentityLevelIncreased => {
+                    deadline = Some(tokio::time::Instant::now() + CONNECT_TIMEOUT);
                     if let Some(id) = con.get_options().get_identity() {
                         listener.on_identity_changed(export_identity(id));
                     }

@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,6 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +33,36 @@ import com.tsrewrite.client.UpdateInfo
 import com.tsrewrite.client.UpdateState
 import com.tsrewrite.client.Updater
 
-/** Shown above the server list while a newer release is available or being installed. */
+/** Blue "Update" button for the top bar while a newer release is available; opens [UpdateCard] in a sheet. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun UpdateButton(updater: Updater) {
+    val state by updater.state.collectAsState()
+    var open by remember { mutableStateOf(false) }
+    val label = when (val s = state) {
+        is UpdateState.Available, is UpdateState.SavedToDownloads, is UpdateState.Installing -> "Update"
+        is UpdateState.Downloading -> "${(s.progress * 100).toInt()}%"
+        is UpdateState.Failed -> if (s.info != null) "Update" else null
+        else -> null
+    }
+    if (label == null) { open = false; return }
+    Button(
+        onClick = { open = true },
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Ts.Blue, contentColor = androidx.compose.ui.graphics.Color.White),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp),
+        modifier = Modifier.padding(end = 4.dp).height(36.dp),
+    ) {
+        Icon(Icons.Default.SystemUpdate, null, Modifier.size(18.dp))
+        Text(label, Modifier.padding(start = 6.dp), fontWeight = FontWeight.SemiBold)
+    }
+    if (open) {
+        androidx.compose.material3.ModalBottomSheet(onDismissRequest = { open = false }, containerColor = Ts.Surface) {
+            UpdateCard(updater, Modifier.padding(start = 8.dp, end = 8.dp, bottom = 28.dp))
+        }
+    }
+}
+
+/** What to do with a newer release: install it in the app, or save it to Downloads. */
 @Composable
 fun UpdateCard(updater: Updater, modifier: Modifier = Modifier) {
     val state by updater.state.collectAsState()

@@ -420,6 +420,7 @@ impl TsClient {
 
     // ---- moderation ----
 
+    /// `password` is the plain channel password; it is hashed when sent.
     pub fn move_client(&self, client_id: u16, channel_id: u64, password: Option<String>) -> u32 {
         let mut args = vec![("clid", client_id.to_string()), ("cid", channel_id.to_string())];
         if let Some(p) = password.filter(|p| !p.is_empty()) {
@@ -595,10 +596,18 @@ fn b(v: bool) -> String {
 pub(crate) fn build_command<'a>(name: &str, args: impl Iterator<Item = (&'a str, &'a str)>) -> OutCommand {
     let mut cmd = OutCommand::new(Direction::C2S, Flags::empty(), PacketType::Command, name);
     for (k, v) in args {
-        cmd.write_arg(k, &v);
+        if HASHED_ARGS.contains(&k) && !v.is_empty() {
+            cmd.write_arg(k, &tsproto_types::crypto::encode_password(v.as_bytes()));
+        } else {
+            cmd.write_arg(k, &v);
+        }
     }
     cmd
 }
+
+/// Channel and server passwords travel as base64(sha1(password)), like the official client sends them;
+/// servers compare those hashes, so a plain password never matches.
+const HASHED_ARGS: [&str; 4] = ["cpw", "tcpw", "channel_password", "virtualserver_password"];
 
 pub(crate) fn export_identity(id: &Identity) -> String {
     format!("{}V{}", id.counter(), id.key().to_ts_obfuscated())

@@ -6,6 +6,7 @@ exclude = ["vendor"]
 [workspace.dependencies]
 tsclientlib = { path = "vendor/tsclientlib/tsclientlib", default-features = false, features = ["audio"] }
 tsproto-packets = { path = "vendor/tsclientlib/utils/tsproto-packets" }
+tsproto-types = { path = "vendor/tsclientlib/utils/tsproto-types" }
 audiopus = "0.3.0-rc.0"
 tokio = { version = "1", features = ["rt", "time", "sync", "macros", "net", "fs", "io-util"] }
 futures = "0.3"
