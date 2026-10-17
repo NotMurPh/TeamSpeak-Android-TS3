@@ -81,6 +81,7 @@ fun BookmarksScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Ts.Bg),
                 actions = {
                     UpdateButton(updater)
+                    PatchNotesButton()
                     IconButton(onClick = onIdentities) { Icon(Icons.Default.Badge, "Identities") }
                     IconButton(onClick = onSettings) { Icon(Icons.Default.Settings, "Settings") }
                 },

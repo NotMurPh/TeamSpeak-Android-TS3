@@ -1,0 +1,51 @@
+[
+  {
+    "build": 11,
+    "date": "2026-10-17",
+    "title": "Patch notes",
+    "changes": [
+      ["new", "What's new: this page, next to your identities."],
+      ["improved", "Server icons and avatars load first and retry when the server is busy."]
+    ]
+  },
+  {
+    "build": 10,
+    "date": "2026-10-17",
+    "title": "Crash fix and calmer earbuds",
+    "changes": [
+      ["fixed", "Joining servers whose welcome message has links (like tgts.ir) no longer crashes the app."],
+      ["fixed", "Bluetooth earbuds keep their noise cancelling: their mic is now opt-in under Settings, the phone mic is used by default."],
+      ["fixed", "Server icons and avatars that sometimes never appeared now load reliably."]
+    ]
+  },
+  {
+    "build": 9,
+    "date": "2026-10-17",
+    "title": "Announcements and updates",
+    "changes": [
+      ["new", "\"Channel switched\" is announced when you change channels."],
+      ["improved", "The ts22.ir bookmark comes with its name and icon."],
+      ["improved", "New versions show up within seconds; Check for updates is at the top of Settings."]
+    ]
+  },
+  {
+    "build": 8,
+    "date": "2026-10-17",
+    "title": "Passwords and connecting",
+    "changes": [
+      ["fixed", "Channel passwords work when joining."],
+      ["fixed", "Connecting no longer gets stuck: it gives up after 20 seconds and can be cancelled."],
+      ["fixed", "Voice keeps working after switching servers or reconnecting."],
+      ["new", "Pick your nickname on first launch."],
+      ["new", "Blue Update button on the server list when a new version is out."]
+    ]
+  },
+  {
+    "build": 6,
+    "date": "2026-10-17",
+    "title": "In-app updates",
+    "changes": [
+      ["new", "Update from inside the app, or save the new version to Downloads."]
+    ]
+  }
+]

@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -48,7 +50,7 @@ class IconStore(private val context: Context, private val session: Session) {
     private var normal = Channel<Download>(Channel.UNLIMITED)
     private var worker: Job? = null
 
-    private class Download(val path: String, val file: File, val done: (File) -> Unit, var tries: Int = 0)
+    private class Download(val path: String, val file: File, val urgent: Boolean, val done: (File) -> Unit, var tries: Int = 0)
 
     fun reset(server: String) {
         dir = File(context.cacheDir, "icons/" + md5(server.lowercase()).take(12)).apply { mkdirs() }
@@ -64,12 +66,19 @@ class IconStore(private val context: Context, private val session: Session) {
         while (true) {
             val d = urgent.tryReceive().getOrNull() ?: select { urgent.onReceive { it }; normal.onReceive { it } }
             if (d.file.exists() && d.file.length() > 0) { d.done(d.file); continue }
-            val err = withTimeoutOrNull(15_000) { session.download(0u, d.path, "", d.file) } ?: "timed out"
+            val err = try {
+                withTimeoutOrNull(15_000) { session.download(0u, d.path, "", d.file) } ?: "timed out"
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                e.message ?: e.javaClass.simpleName
+            }
+            Log.i(TAG, "${d.path}: ${err ?: "ok"}")
             when {
                 err == null -> d.done(d.file)
-                // Missing files stay missing; anything else (busy, timed out) is tried again later.
+                // Missing files stay missing; anything else (busy, not ready yet, timed out) is tried again.
                 "NotFound" in err || "InvalidPath" in err || err == "disconnected" -> {}
-                ++d.tries < 3 -> session.scope.launch { delay(3000L * d.tries); normal.trySend(d) }
+                ++d.tries < 4 -> session.scope.launch { delay(2000L * d.tries); (if (d.urgent) urgent else normal).trySend(d) }
             }
         }
     }
@@ -92,8 +101,9 @@ class IconStore(private val context: Context, private val session: Session) {
 
     private fun icon(id: Long) {
         synchronized(this) { if (!requested.add(id)) return }
-        val d = Download("/icon_$id", File(dir, "icon_$id"), { f -> decode(f, icon = true)?.let { bmp -> _icons.update { it + (id to bmp) } } })
-        (if (urgentIcon == id) urgent else normal).trySend(d)
+        val first = urgentIcon == id
+        val d = Download("/icon_$id", File(dir, "icon_$id"), first, { f -> decode(f, icon = true)?.let { bmp -> _icons.update { it + (id to bmp) } } })
+        (if (first) urgent else normal).trySend(d)
     }
 
     /** The server's own icon, loaded first. */
@@ -103,7 +113,7 @@ class IconStore(private val context: Context, private val session: Session) {
     fun avatar(uid: String, hash: String) {
         if (hash.isBlank()) return
         synchronized(this) { if (!requestedAvatars.add(hash)) return }
-        urgent.trySend(Download(avatarPath(uid), File(dir, "avatar_$hash"), { f -> decode(f)?.let { bmp -> _avatars.update { it + (hash to bmp) } } }))
+        urgent.trySend(Download(avatarPath(uid), File(dir, "avatar_$hash"), true, { f -> decode(f)?.let { bmp -> _avatars.update { it + (hash to bmp) } } }))
     }
 
     private var bannerJob: kotlinx.coroutines.Job? = null
@@ -133,6 +143,8 @@ class IconStore(private val context: Context, private val session: Session) {
         runCatching { BitmapFactory.decodeFile(f.absolutePath)?.let { (if (icon) PixelScale.upscale(it) else scale(it)).asImageBitmap() } }.getOrNull()
 
     private fun scale(b: Bitmap): Bitmap = if (b.width > 256) Bitmap.createScaledBitmap(b, 256, 256 * b.height / b.width, true) else b
+
+    companion object { private const val TAG = "IconStore" }
 
     private fun md5(s: String) = MessageDigest.getInstance("MD5").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
 }
