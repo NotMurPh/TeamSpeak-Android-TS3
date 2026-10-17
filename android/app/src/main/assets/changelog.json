@@ -1,18 +1,12 @@
 [
   {
-    "build": 13,
-    "date": "2026-10-18",
-    "title": "Faster releases",
-    "changes": [
-      ["improved", "New versions are published minutes after they're ready."]
-    ]
-  },
-  {
     "build": 12,
     "date": "2026-10-18",
-    "title": "Cleaner version numbers",
+    "title": "Cleaner versions, faster releases",
     "changes": [
-      ["improved", "Versions read like v0.1.12 instead of 0.1.0+build.12."]
+      ["improved", "Versions read like v0.1.12 instead of 0.1.0+build.12."],
+      ["improved", "New versions are published minutes after they're ready."],
+      ["improved", "A sparkles icon for What's new."]
     ]
   },
   {
