@@ -7,6 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import uniffi.tscore.VoiceMode
 import uniffi.tscore.createIdentity
+import java.io.File
 import java.util.UUID
 
 data class Bookmark(
@@ -78,7 +79,7 @@ data class Settings(
 )
 
 /** Bookmarks, identities and settings, persisted as JSON in shared preferences. */
-class Store(context: Context) {
+class Store(private val context: Context) {
     private val prefs = context.getSharedPreferences("store", Context.MODE_PRIVATE)
 
     private val _bookmarks = MutableStateFlow(loadBookmarks())
@@ -94,10 +95,20 @@ class Store(context: Context) {
             updateSettings(_settings.value.copy(bitrate = 96000))
             prefs.edit().putBoolean("qualityV2", true).apply()
         }
-        // Start with ts22.ir in the list (once; deleting it is respected).
+        // Start with ts22.ir in the list, looking as it does after a first visit (once; deleting it is respected).
         if (!prefs.getBoolean("seededTs22", false)) {
-            if (_bookmarks.value.none { it.address.trim().equals("ts22.ir", ignoreCase = true) }) upsertBookmark(Bookmark(label = "ts22.ir", address = "ts22.ir"))
+            if (_bookmarks.value.none { isTs22(it) }) upsertBookmark(Bookmark(label = TS22_NAME, address = "ts22.ir"))
             prefs.edit().putBoolean("seededTs22", true).apply()
+        }
+        // The earlier seed had only the address; give it the server's name and icon.
+        if (!prefs.getBoolean("seededTs22Look", false)) {
+            _bookmarks.value.filter { isTs22(it) && it.iconPath.isBlank() }.forEach { b ->
+                val icon = File(context.filesDir, "bookmark_icons/${b.id}").apply { parentFile?.mkdirs() }
+                val copied = runCatching { context.assets.open("ts22_icon.png").use { i -> icon.outputStream().use { i.copyTo(it) } } }.isSuccess
+                upsertBookmark(b.copy(label = if (b.label.isBlank() || b.label.equals("ts22.ir", true)) TS22_NAME else b.label,
+                    iconPath = if (copied) icon.absolutePath else ""))
+            }
+            prefs.edit().putBoolean("seededTs22Look", true).apply()
         }
         if (_identities.value.isEmpty()) {
             val id = Identity(name = "Default", data = createIdentity())
@@ -105,6 +116,8 @@ class Store(context: Context) {
             updateSettings(_settings.value.copy(defaultIdentityId = id.id))
         }
     }
+
+    private fun isTs22(b: Bookmark) = b.address.trim().equals("ts22.ir", ignoreCase = true)
 
     /** True until the user has been asked once to replace the default nickname. */
     val shouldAskNickname: Boolean
@@ -239,3 +252,5 @@ class Store(context: Context) {
         )
     }
 }
+
+private const val TS22_NAME = "OmeGa | Ts22.IR"

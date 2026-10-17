@@ -52,7 +52,7 @@ impl EventListener for Printer {
 }
 
 fn print_tree(v: &ServerView) {
-    println!("== {} ({} {}), me={} in {}", v.name, v.platform, v.version, v.own_client_id, v.own_channel_id);
+    println!("== {} ({} {}), me={} in {}, icon={}", v.name, v.platform, v.version, v.own_client_id, v.own_channel_id, v.icon_id);
     for c in &v.channels {
         println!("{}#{} {}{}", "  ".repeat(c.depth as usize), c.id, c.name, if c.has_password { " [pw]" } else { "" });
         for cl in v.clients.iter().filter(|cl| cl.channel_id == c.id) {

@@ -60,14 +60,14 @@ class Updater(private val context: Context) {
     private var lastCheck = 0L
 
     /**
-     * [manual] also reports "up to date" and errors; the automatic check (each time the server list opens,
-     * at most once a minute) stays quiet unless there is an update.
+     * [manual] also reports "up to date" and errors; the automatic check (whenever the server list shows,
+     * at most every 10 s) stays quiet unless there is an update.
      */
     fun check(manual: Boolean = false) {
         if (job?.isActive == true) return
         if (!manual) {
             if (_state.value != UpdateState.Idle && _state.value != UpdateState.UpToDate) return
-            if (System.currentTimeMillis() - lastCheck < 60_000) return
+            if (System.currentTimeMillis() - lastCheck < 10_000) return
         }
         lastCheck = System.currentTimeMillis()
         job = scope.launch {

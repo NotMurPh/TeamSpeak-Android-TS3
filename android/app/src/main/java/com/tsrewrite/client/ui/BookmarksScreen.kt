@@ -55,6 +55,7 @@ import com.tsrewrite.client.Bookmark
 import com.tsrewrite.client.Session
 import com.tsrewrite.client.Store
 import com.tsrewrite.client.Updater
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -66,7 +67,11 @@ fun BookmarksScreen(
     var editing by remember { mutableStateOf<Bookmark?>(null) }
     pendingLink.value?.let { editing = it; pendingLink.value = null }
     var askNickname by remember { mutableStateOf(store.shouldAskNickname) }
-    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) { updater.check(); onPauseOrDispose {} }
+    // Check whenever the list shows, and every 2 minutes while it stays open.
+    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+        val poll = kotlinx.coroutines.MainScope().launch { while (true) { updater.check(); kotlinx.coroutines.delay(120_000) } }
+        onPauseOrDispose { poll.cancel() }
+    }
 
     Scaffold(
         containerColor = Ts.Bg,

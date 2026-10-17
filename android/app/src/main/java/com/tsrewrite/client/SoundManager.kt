@@ -102,6 +102,7 @@ class SoundManager(private val context: Context, private val store: Store, priva
         if (!allowed) return
         if (e.own) {
             when (e.kind) {
+                EventKind.CLIENT_SWITCHED -> speak("Channel switched")
                 EventKind.CLIENT_MOVED -> speak("You were moved")
                 EventKind.CLIENT_KICKED_FROM_CHANNEL -> speak("You were kicked from the channel")
                 EventKind.CLIENT_KICKED_FROM_SERVER -> speak("You were kicked from the server")

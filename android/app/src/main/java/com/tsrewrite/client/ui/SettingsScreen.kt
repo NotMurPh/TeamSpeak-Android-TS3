@@ -97,6 +97,20 @@ fun SettingsPage(store: Store, session: Session, onBack: () -> Unit) {
         Column(Modifier.padding(pad).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 40.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
+            Card("Updates") {
+                val updater = (context.applicationContext as com.tsrewrite.client.App).updater
+                val update by updater.state.collectAsState()
+                Hint("TS Client ${updater.installedVersion}. " + when (val u = update) {
+                    com.tsrewrite.client.UpdateState.Checking -> "Checking…"
+                    com.tsrewrite.client.UpdateState.UpToDate -> "You're up to date."
+                    is com.tsrewrite.client.UpdateState.Failed -> if (u.info == null) u.message else ""
+                    else -> ""
+                })
+                UpdateCard(updater)
+                OutlinedButton(onClick = { updater.check(manual = true) }, enabled = update != com.tsrewrite.client.UpdateState.Checking,
+                    modifier = Modifier.fillMaxWidth()) { Text("Check for updates") }
+            }
+
             Card("Profile") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val avatar = remember(s.avatarPath) { runCatching { BitmapFactory.decodeFile(s.avatarPath)?.asImageBitmap() }.getOrNull() }
@@ -203,20 +217,6 @@ fun SettingsPage(store: Store, session: Session, onBack: () -> Unit) {
                     OutlinedButton(onClick = { exporter.launch("ts-client-backup.json") }, Modifier.weight(1f)) { Text("Export") }
                     OutlinedButton(onClick = { importer.launch(arrayOf("application/json", "text/*")) }, Modifier.weight(1f)) { Text("Import") }
                 }
-            }
-
-            Card("Updates") {
-                val updater = (context.applicationContext as com.tsrewrite.client.App).updater
-                val update by updater.state.collectAsState()
-                Hint("TS Client ${updater.installedVersion}. " + when (val u = update) {
-                    com.tsrewrite.client.UpdateState.Checking -> "Checking…"
-                    com.tsrewrite.client.UpdateState.UpToDate -> "You're up to date."
-                    is com.tsrewrite.client.UpdateState.Failed -> if (u.info == null) u.message else ""
-                    else -> ""
-                })
-                UpdateCard(updater)
-                OutlinedButton(onClick = { updater.check(manual = true) }, enabled = update != com.tsrewrite.client.UpdateState.Checking,
-                    modifier = Modifier.fillMaxWidth()) { Text("Check for updates") }
             }
         }
     }
