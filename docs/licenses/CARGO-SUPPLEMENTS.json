@@ -1,0 +1,20 @@
+{
+  "git-testament-0.2.6": ["docs/licenses/GIT-TESTAMENT-BSD-3-Clause.txt"],
+  "git-testament-derive-0.2.1": ["docs/licenses/GIT-TESTAMENT-BSD-3-Clause.txt"],
+  "jni-0.22.4": ["docs/licenses/JNI-RS-MIT.txt"],
+  "jni-macros-0.22.4": ["docs/licenses/JNI-RS-MIT.txt"],
+  "jni-sys-macros-0.4.1": ["docs/licenses/JNI-SYS-MIT.txt"],
+  "ndk-context-0.1.1": ["docs/licenses/NDK-CONTEXT-MIT.txt"],
+  "quicklz-0.3.1": ["docs/licenses/QUICKLZ-MIT.txt"],
+  "r-efi-6.0.0": ["cargo/r-efi-6.0.0/AUTHORS"],
+  "sonora-aec3-0.2.0": ["docs/licenses/SONORA-BSD-3-Clause.txt"],
+  "uniffi-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_bindgen-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_core-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_internal_macros-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_macros-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_meta-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_pipeline-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "uniffi_udl-0.32.2": ["docs/licenses/MPL-2.0.txt", "docs/licenses/UNIFFI-NOTICE.md"],
+  "valuable-0.1.1": ["docs/licenses/VALUABLE-MIT.txt"]
+}

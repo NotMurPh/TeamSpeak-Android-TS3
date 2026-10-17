@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="750" viewBox="0 0 1600 750" role="img" aria-labelledby="title desc">
+  <title id="title">TeamSpeak Android: TS3 voice chat, wherever you go</title>
+  <desc id="desc">Original vector artwork with three illustrated client previews, not screenshots. The simplified channel tree, channel chat, and voice settings use the application's charcoal and blue palette. Northstar, its channels, all participant names, messages, times, and values are fictional examples. No real servers, accounts, or addresses are shown.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; }
+      .text { fill: #E6E8EA; }
+      .dim { fill: #9BA1A6; }
+      .blue { fill: #1A91D0; }
+      .caption { fill: #9BA1A6; font-size: 17px; letter-spacing: 1.8px; font-weight: 700; }
+      .label { fill: #E6E8EA; font-size: 17px; }
+      .small { fill: #9BA1A6; font-size: 13px; }
+      .line { fill: none; stroke: #E6E8EA; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+    <g id="mic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <rect x="8" y="3" width="8" height="12" rx="4"/>
+      <path d="M5 11v2a7 7 0 0 0 14 0v-2M12 20v3M8 23h8"/>
+    </g>
+    <g id="headphones" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15v-3a8 8 0 0 1 16 0v3"/>
+      <rect x="3" y="13" width="5" height="9" rx="2"/>
+      <rect x="16" y="13" width="5" height="9" rx="2"/>
+    </g>
+    <g id="chat" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 4h14a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H9l-6 4V7a3 3 0 0 1 2-3Z"/>
+      <path d="M8 9h9M8 14h6"/>
+    </g>
+    <g id="channel" fill="currentColor">
+      <path d="M5 3h14a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H9l-5 4v-4a3 3 0 0 1-2-3V6a3 3 0 0 1 3-3Z"/>
+    </g>
+    <g id="server" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+      <rect x="3" y="3" width="18" height="7" rx="2"/>
+      <rect x="3" y="14" width="18" height="7" rx="2"/>
+      <path d="M7 6.5h.1M7 17.5h.1M12 6.5h5M12 17.5h5"/>
+    </g>
+    <g id="back" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m14 5-7 7 7 7M7 12h15"/>
+    </g>
+    <g id="touch" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 12V5a2 2 0 0 1 4 0v7l2-1 5 3v5l-3 4h-6l-6-8a2 2 0 0 1 3-2l1 1"/>
+    </g>
+    <g id="levels" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <path d="M3 10v4M8 5v14M13 2v20M18 7v10M23 10v4"/>
+    </g>
+    <g id="leave" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 13q9-8 18 0l-2 5-5-2v-3h-4v3l-5 2Z"/>
+    </g>
+    <g id="status" fill="#9BA1A6">
+      <text x="24" y="34" font-size="12" font-weight="700">9:41</text>
+      <path d="M217 30h3v-4h-3Zm5 0h3v-7h-3Zm5 0h3V20h-3Z"/>
+      <rect x="239" y="20" width="19" height="10" rx="2" fill="none" stroke="#9BA1A6" stroke-width="1.2"/>
+      <rect x="242" y="23" width="12" height="4" rx="1"/>
+      <path d="M259 23h2v4h-2Z"/>
+    </g>
+    <g id="phone">
+      <rect x="5" y="9" width="288" height="552" rx="35" fill="#08090A"/>
+      <rect width="288" height="552" rx="35" fill="#212325" stroke="#454B50" stroke-width="1.5"/>
+      <rect x="8" y="8" width="272" height="536" rx="28" fill="#111111"/>
+      <rect x="117" y="16" width="54" height="5" rx="2.5" fill="#34383C"/>
+      <circle cx="182" cy="18.5" r="2.5" fill="#34383C"/>
+      <path d="M-2 114v47M290 145v64" stroke="#454B50" stroke-width="3" stroke-linecap="round"/>
+      <rect x="104" y="533" width="80" height="4" rx="2" fill="#6B7176"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="750" rx="26" fill="#111111"/>
+  <path d="M622 0h978v750H622Z" fill="#181A1C"/>
+  <path d="M622 0v750" stroke="#34383C"/>
+  <path d="M0 80v96" stroke="#1A91D0" stroke-width="8"/>
+
+  <!-- Quiet channel connections behind the devices, not an app screen. -->
+  <g fill="none" stroke="#34383C" stroke-width="1.5">
+    <path d="M622 183h28M934 183h17q13 0 13 13v34h26M1234 230h20q12 0 12-12v-35h25M1538 183h62"/>
+    <path d="M622 582h35M934 582h18q12 0 12 12v35h25M1234 629h20q12 0 12-12v-35h30M1538 582h62"/>
+  </g>
+  <g fill="#1A91D0">
+    <circle cx="635" cy="183" r="3"/>
+    <circle cx="1564" cy="183" r="3"/>
+    <circle cx="1564" cy="582" r="3"/>
+  </g>
+
+  <g>
+    <rect x="72" y="81" width="70" height="34" rx="6" fill="#1A91D0"/>
+    <text x="107" y="105" fill="#FFFFFF" text-anchor="middle" font-size="21" font-weight="700">TS3</text>
+    <text x="159" y="104" class="caption">ANDROID VOICE CLIENT</text>
+    <text x="68" y="226" class="text" font-size="78" font-weight="700" letter-spacing="-3">TeamSpeak</text>
+    <text x="68" y="314" class="text" font-size="88" font-weight="700" letter-spacing="-3.5">Android<tspan fill="#1A91D0">.</tspan></text>
+    <path d="M72 352h64" stroke="#1A91D0" stroke-width="4"/>
+    <text x="72" y="405" class="text" font-size="31">TS3 voice chat.</text>
+    <text x="72" y="446" class="text" font-size="31">Wherever you go.</text>
+    <g stroke="#1A91D0" stroke-width="4" stroke-linecap="round">
+      <path d="M75 495v10M86 487v26M97 480v40M108 491v18M119 496v8"/>
+    </g>
+    <text x="143" y="506" class="dim" font-size="22">Your channels. Your conversations.</text>
+    <path d="M72 559h474" stroke="#34383C"/>
+    <rect x="72" y="592" width="6" height="20" rx="2" fill="#1A91D0"/>
+    <text x="92" y="610" class="text" font-size="22" font-weight="700">Illustrated client previews</text>
+    <text x="72" y="645" class="dim" font-size="19">Fictional names and messages.</text>
+    <text x="72" y="673" class="dim" font-size="19">Simplified UI, not screenshots.</text>
+  </g>
+
+  <text x="650" y="49" class="caption">ILLUSTRATED CLIENT PREVIEWS</text>
+  <text x="650" y="85" class="caption">01 / CHANNELS</text>
+  <text x="952" y="119" class="caption">02 / CHAT</text>
+  <text x="1254" y="85" class="caption">03 / VOICE</text>
+
+  <!-- Simplified server tree: all server, channel, and participant names are invented. -->
+  <g transform="translate(646 104)">
+    <use href="#phone"/>
+    <use href="#status"/>
+    <rect x="21" y="54" width="34" height="36" rx="11" fill="#212325"/>
+    <text x="38" y="78" class="blue" text-anchor="middle" font-size="21" font-weight="700">N</text>
+    <text x="65" y="69" class="text" font-size="19" font-weight="700">Northstar</text>
+    <circle cx="69" cy="85" r="3" fill="#4CAF50"/>
+    <text x="78" y="89" class="small" font-size="11">24 ms / Headphones</text>
+    <use href="#chat" transform="translate(233 60) scale(.8)" color="#E6E8EA"/>
+    <g fill="#E6E8EA">
+      <circle cx="267" cy="65" r="1.6"/>
+      <circle cx="267" cy="71" r="1.6"/>
+      <circle cx="267" cy="77" r="1.6"/>
+    </g>
+    <path d="M20 105h248" stroke="#212325"/>
+
+    <use href="#server" transform="translate(23 119) scale(.8)" color="#1A91D0"/>
+    <text x="51" y="135" class="label">Northstar</text>
+    <path d="m25 159 4 4 4-4" class="line"/>
+    <use href="#channel" transform="translate(41 150) scale(.75)" color="#4A9FD8"/>
+    <text x="66" y="166" class="label">Lobby</text>
+    <path d="m245 159 6-5 6 5v8h-4v-5h-4v5h-4Z" fill="#9BA1A6"/>
+
+    <circle cx="71" cy="191" r="9" fill="#1A91D0" fill-opacity=".24"/>
+    <circle cx="71" cy="191" r="5.5" fill="#1A91D0"/>
+    <text x="87" y="197" class="label">Mica</text>
+    <g stroke="#1A91D0" stroke-width="2" stroke-linecap="round">
+      <path d="M238 189v5M243 185v13M248 188v7"/>
+    </g>
+    <circle cx="71" cy="221" r="5.5" fill="#59626B"/>
+    <text x="87" y="227" class="label">Finch</text>
+    <circle cx="71" cy="251" r="5.5" fill="#59626B"/>
+    <text x="87" y="257" class="label" font-weight="700">Orbit</text>
+
+    <path d="m25 283 4 4 4-4" class="line"/>
+    <use href="#channel" transform="translate(41 274) scale(.75)" color="#4A9FD8"/>
+    <text x="66" y="290" class="label">Field team</text>
+    <path d="m47 313 4 4 4-4" class="line"/>
+    <use href="#channel" transform="translate(63 304) scale(.75)" color="#4A9FD8"/>
+    <text x="88" y="320" class="label">Route one</text>
+    <circle cx="93" cy="345" r="5.5" fill="#59626B"/>
+    <text x="109" y="351" class="label">Echo</text>
+
+    <use href="#channel" transform="translate(41 372) scale(.75)" color="#F2B33D"/>
+    <text x="66" y="388" class="label">Quiet room</text>
+    <g transform="translate(242 373)" fill="none" stroke="#F2B33D" stroke-width="1.5">
+      <rect x="0" y="6" width="13" height="11" rx="2"/>
+      <path d="M3 6V3a3.5 3.5 0 0 1 7 0v3"/>
+    </g>
+    <use href="#channel" transform="translate(41 404) scale(.75)" color="#4A9FD8"/>
+    <text x="66" y="420" class="label">Music room</text>
+    <path d="M251 410v12m0-12 7-2v12m-7-7 7-2" fill="none" stroke="#9BA1A6" stroke-width="1.6"/>
+    <ellipse cx="248" cy="423" rx="3.5" ry="2.5" fill="#9BA1A6"/>
+    <ellipse cx="255" cy="421" rx="3.5" ry="2.5" fill="#9BA1A6"/>
+
+    <rect x="16" y="464" width="256" height="61" rx="30.5" fill="#181A1C" stroke="#34383C"/>
+    <circle cx="41" cy="494.5" r="17" fill="#212325"/>
+    <use href="#mic" transform="translate(31 484) scale(.8)" color="#E6E8EA"/>
+    <circle cx="80" cy="494.5" r="17" fill="#212325"/>
+    <use href="#headphones" transform="translate(70 484) scale(.8)" color="#E6E8EA"/>
+    <rect x="103" y="474" width="120" height="41" rx="20.5" fill="#1A91D0"/>
+    <use href="#touch" transform="translate(110 485) scale(.7)" color="#FFFFFF"/>
+    <text x="132" y="499" fill="#FFFFFF" font-size="13" font-weight="700">Push to talk</text>
+    <circle cx="247" cy="494.5" r="17" fill="#F44336"/>
+    <use href="#leave" transform="translate(237 484) scale(.8)" color="#FFFFFF"/>
+  </g>
+
+  <!-- Chat follows the source's filter chips, sender lines, and asymmetric bubbles. -->
+  <g transform="translate(948 138)">
+    <use href="#phone"/>
+    <use href="#status"/>
+    <use href="#back" transform="translate(22 58)" color="#E6E8EA"/>
+    <text x="60" y="77" class="text" font-size="20" font-weight="700">Channel chat</text>
+    <rect x="20" y="99" width="68" height="32" rx="8" fill="none" stroke="#34383C"/>
+    <text x="54" y="120" class="text" text-anchor="middle" font-size="14">Server</text>
+    <rect x="96" y="99" width="86" height="32" rx="8" fill="#173143" stroke="#1A91D0" stroke-opacity=".5"/>
+    <text x="139" y="120" class="text" text-anchor="middle" font-size="14">Channel</text>
+    <rect x="190" y="99" width="68" height="32" rx="8" fill="none" stroke="#34383C"/>
+    <text x="224" y="120" class="text" text-anchor="middle" font-size="14">Pokes</text>
+
+    <text x="23" y="166" class="small">Mica / 09:41</text>
+    <path d="M36 179h187a16 16 0 0 1 16 16v37a16 16 0 0 1-16 16H24a4 4 0 0 1-4-4v-49a16 16 0 0 1 16-16Z" fill="#212325"/>
+    <text x="34" y="205" class="label">Meet in the Lobby?</text>
+    <text x="34" y="231" class="label">Mic check first.</text>
+
+    <text x="262" y="283" class="small" text-anchor="end">Orbit / 09:42</text>
+    <path d="M67 296h179a16 16 0 0 1 16 16v49a4 4 0 0 1-4 4H67a16 16 0 0 1-16-16v-37a16 16 0 0 1 16-16Z" fill="#14709F"/>
+    <text x="65" y="322" fill="#FFFFFF" font-size="17">Loud and clear.</text>
+    <text x="65" y="348" fill="#FFFFFF" font-size="17">Ready when you are.</text>
+
+    <text x="23" y="402" class="small">Finch / 09:42</text>
+    <path d="M36 415h122a16 16 0 0 1 16 16v14a16 16 0 0 1-16 16H24a4 4 0 0 1-4-4v-26a16 16 0 0 1 16-16Z" fill="#212325"/>
+    <text x="34" y="444" class="label">On my way.</text>
+
+    <rect x="20" y="480" width="210" height="43" rx="21.5" fill="none" stroke="#34383C" stroke-width="1.5"/>
+    <text x="37" y="507" class="dim" font-size="16">Message</text>
+    <path d="m244 489 22 12-22 12 4-10 11-2-11-2Z" fill="#6B7176"/>
+  </g>
+
+  <!-- Settings is a condensed, scrolled view using actual control labels. -->
+  <g transform="translate(1250 104)">
+    <use href="#phone"/>
+    <use href="#status"/>
+    <use href="#back" transform="translate(22 58)" color="#E6E8EA"/>
+    <text x="60" y="77" class="text" font-size="20" font-weight="700">Settings</text>
+    <rect x="19" y="101" width="250" height="282" rx="17" fill="#181A1C"/>
+    <text x="33" y="128" class="blue" font-size="17" font-weight="700">How you talk</text>
+
+    <rect x="30" y="143" width="228" height="44" rx="12" fill="none" stroke="#34383C"/>
+    <use href="#touch" transform="translate(42 153) scale(.82)" color="#9BA1A6"/>
+    <text x="76" y="171" class="label">Push to talk</text>
+    <rect x="30" y="195" width="228" height="44" rx="12" fill="#152630" stroke="#1A91D0" stroke-width="2"/>
+    <use href="#levels" transform="translate(41 205) scale(.82)" color="#1A91D0"/>
+    <text x="76" y="223" class="label">Voice activation</text>
+    <rect x="30" y="247" width="228" height="44" rx="12" fill="none" stroke="#34383C"/>
+    <use href="#mic" transform="translate(42 257) scale(.82)" color="#9BA1A6"/>
+    <text x="76" y="275" class="label">Always on</text>
+
+    <text x="33" y="316" class="text" font-size="15">Sensitivity</text>
+    <text x="255" y="316" class="dim" text-anchor="end" font-size="14">-40 dB</text>
+    <path d="M37 336h213" stroke="#34383C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M37 336h108" stroke="#1A91D0" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="145" cy="336" r="8" fill="#1A91D0"/>
+    <rect x="33" y="359" width="221" height="5" rx="2.5" fill="#2A2D30"/>
+    <rect x="33" y="359" width="154" height="5" rx="2.5" fill="#4CAF50"/>
+
+    <rect x="19" y="395" width="250" height="128" rx="17" fill="#181A1C"/>
+    <text x="33" y="421" class="blue" font-size="17" font-weight="700">Sound</text>
+    <text x="33" y="446" class="text" font-size="15">Microphone volume</text>
+    <text x="255" y="446" class="dim" text-anchor="end" font-size="14">1.0x</text>
+    <path d="M37 461h213" stroke="#34383C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M37 461h47" stroke="#1A91D0" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="84" cy="461" r="7" fill="#1A91D0"/>
+    <text x="33" y="488" class="text" font-size="15">Playback volume</text>
+    <text x="255" y="488" class="dim" text-anchor="end" font-size="14">100%</text>
+    <path d="M37 504h213" stroke="#34383C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M37 504h106" stroke="#1A91D0" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="143" cy="504" r="7" fill="#1A91D0"/>
+    <rect x="273" y="223" width="2" height="115" rx="1" fill="#454B50"/>
+  </g>
+
+  <path d="M650 718h888" stroke="#34383C"/>
+  <path d="M650 718h96" stroke="#1A91D0" stroke-width="2"/>
+</svg>

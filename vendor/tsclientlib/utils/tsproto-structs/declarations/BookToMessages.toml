@@ -1,0 +1,393 @@
+# As in M2B from/to properties can be automatically mapped when they have
+# the same high-level name.
+
+[[rule]]
+# From the Book
+from = "Channel"
+# Into message
+to = "ChannelEdit"
+operation = "update"
+# The static message parameters
+# Can be often empty
+# Can be inferred from required message parameters
+ids = [
+	{ from="Id", to="ChannelId" },
+]
+# The dynamic message parameters
+# from is the property which gets updated, to is the field in the message
+properties = [
+	# Function which reads a value form the book and splits it up
+	# into multiple message parameters
+	# fn bla(Channel, MaxClientChannelInherited) -> (type of asd)
+	#{ from="MaxClientChannelInherited", function="Bla", tolist=["asd"] },
+
+	{ from="password", type="str?", function="PasswordFlaggedB2m", tolist=["HasPassword", "Password"] }, # 'password' is a helper
+	{ from="ChannelType", type="ChannelType", function="ChannelTypeFunB2m", tolist=["IsSemiPermanent", "IsPermanent"] },
+	{ from="MaxClients", type="MaxClients", function="MaxClientsFunB2m", tolist=["MaxClients", "IsMaxClientsUnlimited"] },
+	{ from="MaxFamilyClients", type="MaxClients", function="MaxFamilyClientsFunB2m", tolist=["MaxFamilyClients", "IsMaxFamilyClientsUnlimited", "InheritsMaxFamilyClients"] },
+	{ from="Description", to="Description" }, # From optional data
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelAddPerm"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="Value", to="PermissionValue" },
+]
+properties = [
+	{ from="PermissionId", to ="PermissionId" },
+	{ from="PermissionName", to ="PermissionNameId" },
+]
+
+# Define Client-Channel-Permissions on the channel, because a channel always exists and we need to
+# be able to change permissions, even if a client is not online.
+[[rule]]
+from = "Channel"
+to = "ChannelClientAddPerm"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="ClientDbId", to="ClientDbId" },
+	{ from="Value", to="PermissionValue" },
+]
+properties = [
+	{ from="PermissionId", to ="PermissionId" },
+	{ from="PermissionName", to ="PermissionNameId" },
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelClientDelPerm"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="ClientDbId", to="ClientDbId" },
+]
+properties = [
+	{ from="PermissionId", to ="PermissionId" },
+	{ from="PermissionName", to ="PermissionNameId" },
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelClientPermListRequest"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="ClientDbId", to="ClientDbId" },
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelDelPerm"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+]
+properties = [
+	{ from="PermissionId", to ="PermissionId" },
+	{ from="PermissionName", to ="PermissionNameId" },
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelDescriptionRequest"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelMove"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="Parent", type="ChannelId", function="ChannelIdB2m", tolist=["ParentId"] },
+	{ from="Order", type="ChannelId", function="ChannelIdB2m", tolist=["Order"] },
+]
+
+[[rule]]
+from = "Channel"
+to = "ChannelPermListRequest"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+]
+
+# Filetransfer stuff for Channel
+
+[[rule]]
+from = "Channel"
+to = "CreateDirectory"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="Password", type="str", function="PasswordB2m", tolist=["ChannelPassword"] },
+	{ from="Path", to="DirectoryName" },
+]
+
+[[rule]]
+from = "Channel"
+to = "DeleteFile"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="Password", type="str", function="PasswordB2m", tolist=["ChannelPassword"] },
+	{ from="Path", to="Name" },
+]
+
+[[rule]]
+from = "Channel"
+to = "FileListRequest"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="Password", type="str", function="PasswordB2m", tolist=["ChannelPassword"] },
+	{ from="Path", to="Path" },
+]
+
+[[rule]]
+from = "Channel"
+to = "RenameFile"
+operation = "update"
+ids = [
+	{ from="Id", to="ChannelId" },
+	{ from="Password", type="str", function="PasswordB2m", tolist=["ChannelPassword"] },
+	{ from="FromPath", to="OldName" },
+	{ from="ToPath", to="NewName" },
+]
+properties = [
+	{ from="ToChannel", to="TargetChannelId" },
+	{ from="ToChannelPassword", type="str", function="PasswordB2m2", tolist=["TargetChannelPassword"] },
+]
+
+
+[[rule]]
+from = "Client"
+to = "ClientAddPerm"
+operation = "update"
+ids = [
+	{ from="DatabaseId", to="ClientDbId" },
+	{ from="Value", to="PermissionValue" },
+	{ from="Skip", to="PermissionSkip" },
+]
+properties = [
+	{ from="PermissionId", to ="PermissionId" },
+	{ from="PermissionName", to ="PermissionNameId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientConnectionInfoRequest"
+operation = "update"
+ids = [
+	{ from="Id", to="ClientId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientDelPerm"
+operation = "update"
+ids = [
+	{ from="DatabaseId", to="ClientDbId" },
+]
+properties = [
+	{ from="PermissionId", to ="PermissionId" },
+	{ from="PermissionName", to ="PermissionNameId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientPermListRequest"
+operation = "update"
+ids = [
+	{ from="DatabaseId", to="ClientDbId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientVariablesRequest"
+operation = "update"
+ids = [
+	{ from="Id", to="ClientId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientEdit"
+operation = "update"
+ids = [
+	{ from="Id", to="ClientId" },
+]
+
+[[rule]]
+from = "Connection"
+to = "ClientUpdate"
+operation = "update"
+properties = [
+	# The original properties are on the client object, but we can only change
+	# our own properties, so these methods are available on the connection.
+	{ from="Name", to="Name" },
+	{ from="PhoneticName", to="PhoneticName" },
+	{ from="InputMuted", to="InputMuted" },
+	{ from="OutputMuted", to="OutputMuted" },
+	{ from="InputHardwareEnabled", to="InputHardwareEnabled" },
+	{ from="OutputHardwareEnabled", to="OutputHardwareEnabled" },
+	{ from="IsChannelCommander", to="IsChannelCommander" },
+	{ from="IsRecording", to="IsRecording" },
+	{ from="AvatarHash", to="AvatarHash" },
+	{ from="Away", type="str?", function="AwayFunB2m", tolist=["IsAway", "AwayMessage"] },
+	{ from="TalkPowerRequest", type="str?", function="AwayFunB2m", tolist=["TalkPowerRequest", "TalkPowerRequestMessage"] },
+]
+
+[[rule]]
+from = "Connection"
+to = "Disconnect"
+operation = "remove"
+
+[[rule]]
+from = "Connection"
+to = "PluginCommandRequest"
+operation = "update"
+ids = [
+	{ from="Name", to="Name" },
+	{ from="Data", to="Data" },
+	{ from="Target", to="Target" },
+	# TODO optional
+	{ from="TargetClientId", to="TargetClientId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ServerGroupAddClient"
+operation = "add"
+ids = [
+	{ from="DatabaseId", to="ClientDbId" },
+]
+properties = [
+	{ from="ServerGroup", to="ServerGroupId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ServerGroupDelClient"
+operation = "remove"
+ids = [
+	{ from="DatabaseId", to="ClientDbId" },
+]
+properties = [
+	{ from="ServerGroup", to="ServerGroupId" },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientMove"
+operation = "update"
+ids = [
+	{ from="Id", to="ClientId" },
+	{ from="Channel", type="ChannelId", function="ChannelIdB2m", tolist=["ChannelId"] },
+]
+properties = [
+	{ from="Password", type="str", function="PasswordB2m", tolist=["ChannelPassword"] },
+]
+
+[[rule]]
+from = "Client"
+to = "ClientKick"
+operation = "update"
+ids = [
+	{ from="Id", to="ClientId" },
+	{ from="Reason", to="Reason" },
+]
+properties = [
+	{ from="ReasonMessage", to="ReasonMessage" },
+]
+
+[[rule]]
+from = "Server"
+to = "FileListRequest"
+operation = "update"
+ids = [
+	{ function="ZeroChannelId", tolist=["ChannelId"] },
+	{ function="EmptyString", tolist=["ChannelPassword"] },
+	{ from="Path", to="Path" },
+]
+
+[[rule]]
+from = "Server"
+to = "DeleteFile"
+operation = "update"
+ids = [
+	{ function="ZeroChannelId", tolist=["ChannelId"] },
+	{ function="EmptyString", tolist=["ChannelPassword"] },
+	{ from="Path", to="Name" },
+]
+
+[[rule]]
+from = "Server"
+to = "PermListRequest"
+operation = "update"
+ids = [
+]
+
+[[rule]]
+from = "Server"
+to = "ServerVariablesRequest"
+operation = "update"
+ids = [
+]
+
+[[rule]]
+from = "Server"
+to = "ServerConnectionInfoRequest"
+operation = "update"
+ids = [
+]
+
+[[rule]]
+from = "Server"
+to = "LogView"
+operation = "update"
+ids = [
+]
+properties = [
+	{ from="Lines", to="Lines" },
+	{ from="Reverse", to="Reverse" },
+	{ from="InstanceLog", to="InstanceLog" },
+	{ from="Offset", to="Offset" },
+]
+
+[[rule]]
+from = "Server"
+to = "ServerEdit"
+operation = "update"
+ids = [
+]
+properties = [
+	{ from="Password", type="str?", function="PasswordB2m", tolist=["Password"] },
+]
+
+[[rule]]
+from = "ServerGroup"
+to = "ServerGroupAddClient"
+operation = "add"
+ids = [
+	{ from="Id", to="ServerGroupId" },
+]
+properties = [
+	{ from="Client", to="ClientDbId" },
+]
+
+[[rule]]
+from = "ServerGroup"
+to = "ServerGroupDelClient"
+operation = "remove"
+ids = [
+	{ from="Id", to="ServerGroupId" },
+	# Not an id attribute of the server group, but we want to have it as an
+	# argument.
+	{ from="Client", to="ClientDbId" },
+]

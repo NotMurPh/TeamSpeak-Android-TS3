@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [
+	"tsclientlib",
+	"tsproto",
+	"utils/ts-bookkeeping",
+	"utils/tsproto-packets",
+	"utils/tsproto-structs",
+	"utils/tsproto-types",
+]

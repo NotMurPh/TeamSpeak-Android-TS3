@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="560" viewBox="0 0 1600 560" role="img" aria-labelledby="title desc">
+  <title id="title">Your voice, your way: push to talk, voice activation, channels and chat</title>
+  <desc id="desc">Original vector illustration of a person wearing a headset and using a phone. Three labels describe the client's push-to-talk, voice activation, and channel chat features. The small phone is a simplified illustrated client preview, not a screenshot. Northstar, Lobby, Mica, Orbit, and the displayed connection value are fictional illustrative data.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; }
+      .text { fill: #E6E8EA; }
+      .dim { fill: #9BA1A6; }
+      .blue { fill: #1A91D0; }
+      .icon { fill: none; stroke: #1A91D0; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+    <g id="mic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <rect x="8" y="3" width="8" height="12" rx="4"/>
+      <path d="M5 11v2a7 7 0 0 0 14 0v-2M12 20v3M8 23h8"/>
+    </g>
+    <g id="headphones" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15v-3a8 8 0 0 1 16 0v3"/>
+      <rect x="3" y="13" width="5" height="9" rx="2"/>
+      <rect x="16" y="13" width="5" height="9" rx="2"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="560" rx="24" fill="#111111"/>
+  <path d="M807 48v432" stroke="#34383C"/>
+  <text x="72" y="62" class="dim" font-size="18" font-weight="700" letter-spacing="2">TAKE THE CONVERSATION WITH YOU</text>
+
+  <!-- A human-scale audio illustration, drawn from simple original vector shapes. -->
+  <circle cx="340" cy="297" r="202" fill="#181A1C"/>
+  <path d="M131 315a211 211 0 0 1 318-198M163 416a211 211 0 0 0 268 71" fill="none" stroke="#34383C" stroke-width="1.5"/>
+  <path d="M120 316a222 222 0 0 1 26-123" fill="none" stroke="#1A91D0" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="145" cy="192" r="5" fill="#1A91D0"/>
+  <g fill="none" stroke="#1A91D0" stroke-width="3" stroke-linecap="round">
+    <path d="M437 211q16 14 0 28M452 200q27 25 0 50"/>
+    <path d="M490 135v12M501 124v34M512 112v58M523 128v26M534 137v8"/>
+  </g>
+
+  <!-- Shoulder, neck, face, and headset. No official brand artwork is used. -->
+  <path d="M120 487c4-75 32-124 91-142l63-20 67 3 67 26c39 15 64 47 75 87l13 46Z" fill="#253A46"/>
+  <path d="M120 487c4-75 32-124 91-142l22-6-14 74-14 74Z" fill="#212325"/>
+  <path d="m272 281-4 51c12 27 40 37 71 5l-7-66Z" fill="#B88C73"/>
+  <path d="m272 288-3 31c18 13 40 10 65-15l-2-31Z" fill="#936F5D"/>
+  <path d="M239 190c0-49 31-77 71-77 40 0 67 28 68 68l1 18 17 24c3 5 0 10-10 12l-8 1-3 25c-3 24-20 40-42 41-45 1-79-40-89-75Z" fill="#C9A38B"/>
+  <path d="M239 194c-11-19-14-49 1-73 20-31 67-40 100-28 31 11 47 31 49 60-27 3-51-6-65-25-5 37-37 42-57 51l-5 43-18 5Z" fill="#34383C"/>
+  <path d="M241 121c22-26 70-33 103-16" fill="none" stroke="#454B50" stroke-width="4" stroke-linecap="round"/>
+  <path d="m349 186 16 3" fill="none" stroke="#473D38" stroke-width="3" stroke-linecap="round"/>
+  <path d="M358 199h5M365 251q7 3 12-1" fill="none" stroke="#473D38" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M339 235q-7 17 3 28" fill="none" stroke="#B88C73" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="265" cy="218" rx="17" ry="23" fill="#B88C73"/>
+
+  <path d="M230 216v-35c0-52 30-86 72-86 43 0 74 34 74 76" fill="none" stroke="#08090A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M230 207v-26c0-52 30-86 72-86 43 0 74 34 74 76" fill="none" stroke="#1A91D0" stroke-width="10" stroke-linecap="round"/>
+  <rect x="214" y="189" width="44" height="78" rx="20" fill="#08090A"/>
+  <rect x="216" y="189" width="32" height="72" rx="15" fill="#14709F"/>
+  <rect x="219" y="202" width="8" height="43" rx="4" fill="#1A91D0"/>
+  <path d="M243 254c20 25 42 32 75 27" fill="none" stroke="#454B50" stroke-width="7" stroke-linecap="round"/>
+  <rect x="309" y="272" width="27" height="14" rx="7" fill="#1A91D0" transform="rotate(-6 322 279)"/>
+
+  <path d="M252 340q39 44 92 1M216 371l-19 116M365 370l33 117" fill="none" stroke="#416070" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M258 413h57" stroke="#1A91D0" stroke-width="4" stroke-linecap="round"/>
+  <path d="M284 413v22" stroke="#1A91D0" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- The arm leads toward a small, deliberately simplified client preview. -->
+  <path d="M380 394c33 5 44 27 58 43l85-52 26 41-104 61h-47c-22-20-42-64-18-93Z" fill="#C9A38B"/>
+  <path d="m380 394 28 62 25-17c-11-20-24-40-53-45Z" fill="#253A46"/>
+  <path d="m408 456 11 22" fill="none" stroke="#936F5D" stroke-width="2" stroke-linecap="round"/>
+
+  <g transform="translate(535 156) rotate(8 99 166)">
+    <rect x="5" y="8" width="198" height="332" rx="26" fill="#08090A"/>
+    <rect width="198" height="332" rx="26" fill="#212325" stroke="#59626B" stroke-width="1.5"/>
+    <rect x="7" y="7" width="184" height="318" rx="21" fill="#111111"/>
+    <rect x="75" y="14" width="49" height="4" rx="2" fill="#34383C"/>
+    <text x="20" y="43" class="text" font-size="12">9:41</text>
+    <path d="M152 40h3v-4h-3Zm5 0h3v-7h-3Zm5 0h3V30h-3Z" fill="#9BA1A6"/>
+    <rect x="170" y="30" width="12" height="9" rx="2" fill="none" stroke="#9BA1A6"/>
+
+    <rect x="18" y="61" width="31" height="32" rx="10" fill="#212325"/>
+    <text x="33" y="83" class="blue" text-anchor="middle" font-size="20" font-weight="700">N</text>
+    <text x="60" y="75" class="text" font-size="17" font-weight="700">Northstar</text>
+    <circle cx="63" cy="90" r="3" fill="#4CAF50"/>
+    <text x="72" y="94" class="dim" font-size="11">24 ms / Headphones</text>
+    <path d="M18 108h162" stroke="#34383C"/>
+    <g fill="none" stroke="#1A91D0" stroke-width="1.6">
+      <rect x="20" y="121" width="15" height="6" rx="1.5"/>
+      <rect x="20" y="131" width="15" height="6" rx="1.5"/>
+    </g>
+    <text x="44" y="135" class="text" font-size="17">Northstar</text>
+    <path d="m22 157 4 4 4-4" fill="none" stroke="#9BA1A6" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M41 150h14a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-8l-5 4v-4h-1a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3Z" fill="#4A9FD8"/>
+    <text x="67" y="165" class="text" font-size="17">Lobby</text>
+    <circle cx="66" cy="190" r="5" fill="#59626B"/>
+    <text x="80" y="196" class="text" font-size="17">Mica</text>
+    <circle cx="66" cy="222" r="9" fill="#1A91D0" fill-opacity=".24"/>
+    <circle cx="66" cy="222" r="5" fill="#1A91D0"/>
+    <text x="80" y="228" class="text" font-size="17" font-weight="700">Orbit</text>
+    <path d="M148 219v6M154 215v14M160 218v8" stroke="#1A91D0" stroke-width="2" stroke-linecap="round"/>
+
+    <rect x="14" y="266" width="170" height="43" rx="21.5" fill="#181A1C" stroke="#34383C"/>
+    <circle cx="34" cy="287" r="13" fill="#212325"/>
+    <use href="#mic" transform="translate(26 279) scale(.65)" color="#E6E8EA"/>
+    <circle cx="66" cy="287" r="13" fill="#212325"/>
+    <use href="#headphones" transform="translate(58 279) scale(.65)" color="#E6E8EA"/>
+    <rect x="84" y="274" width="66" height="27" rx="13.5" fill="#4CAF50"/>
+    <text x="117" y="292" fill="#FFFFFF" text-anchor="middle" font-size="13" font-weight="700">Talking</text>
+    <circle cx="168" cy="287" r="12" fill="#F44336"/>
+    <path d="M161 287q7-6 14 0l-2 4-4-1v-2h-3v2l-4 1Z" fill="#FFFFFF"/>
+    <rect x="71" y="316" width="56" height="3" rx="1.5" fill="#6B7176"/>
+  </g>
+
+  <!-- The hand supports the phone without covering its controls. -->
+  <path d="m522 386 16-15 12-28c3-7 13-4 12 4l-3 27 12 9 15-3c9-2 13 7 6 12l-8 5c10-3 15 7 7 12l-12 7c7-1 10 7 4 11l-17 10-25 2-15-14Z" fill="#C9A38B"/>
+  <path d="m568 396 13-3M567 409l15-6M561 424l16-8" fill="none" stroke="#936F5D" stroke-width="2" stroke-linecap="round"/>
+
+  <text x="870" y="111" class="text" font-size="47" font-weight="700" letter-spacing="-1.3">Your voice. Your way.</text>
+  <path d="M873 144h63" stroke="#1A91D0" stroke-width="3"/>
+
+  <g transform="translate(873 182)">
+    <g class="icon">
+      <path d="M14 22V8a4 4 0 0 1 8 0v14l5-2 10 6v10l-7 8H18L6 28a4 4 0 0 1 6-5l2 2"/>
+      <path d="M7 11a11 11 0 0 1 22-1" stroke-opacity=".5"/>
+    </g>
+    <text x="77" y="22" class="text" font-size="29" font-weight="700">Push to talk</text>
+    <text x="77" y="58" class="dim" font-size="23">Hold the talk button to speak.</text>
+  </g>
+  <path d="M950 270h574" stroke="#2A2D30"/>
+
+  <g transform="translate(873 291)">
+    <g class="icon" stroke-width="3.5">
+      <path d="M4 18v9M13 9v27M23 2v41M33 12v22M43 19v8"/>
+    </g>
+    <text x="77" y="22" class="text" font-size="29" font-weight="700">Voice activation</text>
+    <text x="77" y="58" class="dim" font-size="23">Transmits automatically when you speak.</text>
+  </g>
+  <path d="M950 379h574" stroke="#2A2D30"/>
+
+  <g transform="translate(873 400)">
+    <g class="icon">
+      <path d="M4 3h29a5 5 0 0 1 5 5v19a5 5 0 0 1-5 5H18L7 40v-8H4a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5Z"/>
+      <path d="M9 13h17M9 22h11"/>
+    </g>
+    <text x="77" y="22" class="text" font-size="29" font-weight="700">Channels &amp; chat</text>
+    <text x="77" y="58" class="dim" font-size="23">Find your room. Keep the conversation going.</text>
+  </g>
+
+  <path d="M72 508h1456" stroke="#34383C"/>
+  <path d="M72 508h88" stroke="#1A91D0" stroke-width="2"/>
+  <text x="72" y="540" class="dim" font-size="18">Original illustration / Fictional client data</text>
+  <text x="1528" y="540" class="dim" text-anchor="end" font-size="18">Illustrated client preview, not a screenshot.</text>
+</svg>

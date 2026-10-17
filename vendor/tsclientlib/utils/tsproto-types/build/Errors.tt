@@ -1,0 +1,13 @@
+<#@ template cleanws="true" #>
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, FromPrimitive, Hash, PartialEq, Serialize, ToPrimitive)]
+#[non_exhaustive]
+pub enum Error {
+<# for e in &**self { #>
+	<# if !e.doc.is_empty() { #>
+<#= indent(&doc_comment(&e.doc), 1) #>
+	<# } #>
+	<#= e.name.to_pascal_case() #> = <#= e.num #>,
+<# } #>
+}

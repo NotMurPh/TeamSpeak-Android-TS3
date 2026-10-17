@@ -1,0 +1,14 @@
+<#@ template cleanws="true" #>
+<# for struc in &self.0.structs { #>
+<#= doc_comment(&struc.doc) #>
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct <#= struc.name #> {
+<# for p in struc.get_all_properties() {
+	if let Some(ref doc) = p.get_doc() { #>
+<#= indent(doc_comment(doc), 1) #>
+<# } #>
+	pub <#= p.get_attr_name(&struc) #>: <#= p.get_type(&self.0.structs)? #>,
+<# } #>
+}
+
+<# } #>

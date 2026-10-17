@@ -1,0 +1,268 @@
+# All properties which have an identical 'High-Level' name are copied implicitly
+
+[[rule]]
+from = "ChannelCreated"
+id = ["ChannelId"]
+to = "Channel"
+# add/update/remove
+operation = "add"
+properties = [
+	{ from="ParentId", to="Parent" },
+	{ function="ChannelTypeCcFun", tolist=["ChannelType"] },
+	{ function="ChannelOrderCcFun", tolist=["Order"] },
+	{ function="MaxClientsCcFun", tolist=["MaxClients", "MaxFamilyClients"] },
+	# Default codec is opus voice
+	{ function="ChannelCodecCcFun", tolist=["Codec"] },
+	{ function="ReturnFalse", tolist=["ForcedSilence"] },
+	{ function="ReturnFalse", tolist=["Subscribed"] },
+	{ function="ReturnNone", tolist=["IsPrivate"] },
+	{ function="ReturnNone", tolist=["Guid"] },
+	{ function="ReturnNone", tolist=["OptionalData"] },
+	{ function="ReturnNone", tolist=["PermissionHints"] },
+]
+
+[[rule]]
+from = "ChannelDeleted"
+id = ["ChannelId"]
+to = "Channel"
+operation = "remove"
+
+[[rule]]
+from = "ChannelEdited"
+id = ["ChannelId"]
+to = "Channel"
+operation = "update"
+properties = [
+	{ function="MaxClientsCeFun", tolist=["MaxClients", "MaxFamilyClients"] },
+	{ function="ChannelTypeCeFun", tolist=["ChannelType"] },
+	{ function="ChannelOrderCeFun", tolist=["Order"] },
+]
+
+[[rule]]
+from = "ChannelEdited"
+id = ["ChannelId"]
+to = "OptionalChannelData"
+operation = "update"
+properties = [
+]
+
+[[rule]]
+from = "ChannelEditedLow"
+id = ["ChannelId"]
+to = "OptionalChannelData"
+operation = "update"
+properties = [
+]
+
+[[rule]]
+from = "ChannelDescriptionChanged"
+id = ["ChannelId"]
+to = "OptionalChannelData"
+operation = "remove"
+
+[[rule]]
+from = "ChannelGroupList"
+id = ["ChannelGroup"]
+to = "ChannelGroup"
+operation = "add"
+
+[[rule]]
+from = "ChannelList"
+id = ["ChannelId"]
+to = "Channel"
+operation = "add"
+properties = [
+	{ from="ParentId", to="Parent" },
+	{ function="MaxClientsClFun", tolist=["MaxClients", "MaxFamilyClients"] },
+	{ function="ChannelTypeClFun", tolist=["ChannelType"] },
+	{ function="ReturnFalse", tolist=["Subscribed"] },
+	{ function="ReturnNone", tolist=["PermissionHints"] },
+	{ function="ReturnNone", tolist=["OptionalData"] },
+]
+
+[[rule]]
+from = "ChannelMoved"
+id = ["ChannelId"]
+to = "Channel"
+operation = "update"
+properties = [
+	{ from="ParentId", to="Parent" },
+	{ function="ChannelOrderCmFun", tolist=["Order"] },
+]
+
+[[rule]]
+from = "ChannelPermissionHints"
+id = ["ChannelId"]
+to = "Channel"
+operation = "update"
+properties = [
+	{ from="Flags", to="PermissionHints" },
+]
+
+[[rule]]
+from = "ChannelSubscribed"
+id = ["ChannelId"]
+to = "Channel"
+operation = "update"
+properties = [
+	{ function="ChannelSubscribeFun", tolist=["Subscribed"] },
+]
+
+[[rule]]
+from = "ChannelUnsubscribed"
+id = ["ChannelId"]
+to = "Channel"
+operation = "update"
+properties = [
+	{ function="ChannelUnsubscribeFun", tolist=["Subscribed"] },
+]
+
+[[rule]]
+from = "ClientChannelGroupChanged"
+id = ["ClientId"]
+to = "Client"
+operation = "update"
+
+[[rule]]
+from = "ClientEnterView"
+id = ["ClientId"]
+to = "Client"
+operation = "add"
+properties = [
+	{ from="TargetChannelId", to="Channel" },
+	{ function="AwayCevFun", tolist=["AwayMessage"] },
+	{ function="ClientTypeCevFun", tolist=["ClientType"] },
+	{ function="TalkPowerCevFun", tolist=["TalkPowerRequest"] },
+	{ function="ReturnNone", tolist=["PermissionHints"] },
+	{ function="ReturnNone", tolist=["OptionalData"] },
+	{ function="ReturnNone", tolist=["ConnectionData"] },
+]
+
+[[rule]]
+from = "ClientLeftView"
+id = ["ClientId"]
+to = "Client"
+operation = "remove"
+
+[[rule]]
+from = "ClientMoved"
+id = ["ClientId"]
+to = "Client"
+operation = "update"
+properties = [
+	{ from="TargetChannelId", to="Channel" },
+	# Set channel subscribed when the current client is moved
+	{ function="SubscribeChannelFun", tolist=[] },
+]
+
+[[rule]]
+from = "ClientConnectionInfo"
+id = ["ClientId"]
+to = "ConnectionClientData"
+operation = "update"
+properties = [
+	{ function="AddressFun", tolist=["ClientAddress"] },
+]
+
+[[rule]]
+from = "ClientServerGroupAdded"
+id = ["ClientId"]
+to = "Client"
+operation = "update"
+properties = [
+	{ from="ServerGroupId", to="ServerGroups", operation="add" },
+	# We explicitly throw away the server group name.
+	# Otherwise it would overwrite our client name because of automated
+	# matching.
+	{ function="VoidFun", tolist=["Name"] },
+]
+
+[[rule]]
+from = "ClientServerGroupRemoved"
+id = ["ClientId"]
+to = "Client"
+operation = "update"
+properties = [
+	{ from="ServerGroupId", to="ServerGroups", operation="remove" },
+	{ function="VoidFun", tolist=["Name"] },
+]
+
+[[rule]]
+from = "ClientUpdated"
+id = ["ClientId"]
+to = "Client"
+operation = "update"
+properties = [
+	{ function="AwayCuFun", tolist=["AwayMessage"] },
+	{ function="TalkPowerCuFun", tolist=["TalkPowerRequest"] },
+]
+
+[[rule]]
+from = "ClientUpdated"
+id = ["ClientId"]
+to = "OptionalClientData"
+operation = "update"
+properties = [
+	{ function="ReturnSomeNone", tolist=["VersionSign"] },
+]
+
+[[rule]]
+from = "ClientPermissionHints"
+id = ["ClientId"]
+to = "Client"
+operation = "update"
+properties = [
+	{ from="Flags", to="PermissionHints" },
+]
+
+[[rule]]
+from = "InitServer"
+id = []
+to = "Server"
+operation = "add"
+properties = [
+	{ from="VirtualServerId", to="Id" },
+	# `Uid` is generated from public key
+	# ClientName, ClientId, TalkPower, NeededServerqueryViewPower
+	{ function="SetClientDataFun", tolist=[] },
+]
+
+[[rule]]
+from = "ServerEdited"
+id = []
+to = "Server"
+operation = "update"
+
+[[rule]]
+from = "ServerEdited"
+id = []
+to = "OptionalServerData"
+operation = "remove"
+
+[[rule]]
+from = "ServerUpdated"
+id = []
+to = "Server"
+operation = "update"
+
+[[rule]]
+from = "ServerGroupList"
+id = ["ServerGroupId"]
+to = "ServerGroup"
+operation = "add"
+
+[[rule]]
+from = "ServerConnectionInfo"
+id = []
+to = "ConnectionServerData"
+operation = "update"
+properties = [
+]
+
+[[rule]]
+from = "ServerUpdated"
+id = []
+to = "OptionalServerData"
+operation = "update"
+properties = [
+]

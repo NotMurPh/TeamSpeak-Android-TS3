@@ -1,0 +1,1028 @@
+# The fields array specifies command parameter.
+# - "map": is a unique name for a field. This is required since teamspeak
+#   | sometimes reuses field names with different data or datatypes.
+#   | We usually use the same as "ts" unless disambiguation is needed.
+# - "ts": is then field name in the command as teamspeak uses it.
+# - "pretty": is a high-level name for the field which should be better readable
+#   | and make more sense in the object context it is used.
+# - "type": Describes a primitive type or enum which can be used for this field.
+#   | We use the primitive type namings of the language 'Rust'.
+# - "mod": Applies an additional modifier to this field. Current modifiers:
+#   | "array": The field is a comma-separated list and can be read as an array.
+
+fields = [
+	{ map="aclid", ts="aclid", pretty="ClientId", type="ClientId" },
+	{ map="acn", ts="acn", pretty="AcceptedClientName", type="str" },
+	{ map="alpha", ts="alpha", pretty="Alpha", type="str" },
+	{ map="average_speed", ts="average_speed", pretty="AverageSpeed", type="f32" },
+	{ map="banid", ts="banid", pretty="BanId", type="u32" }, # integer, size guessed
+	{ map="bantime", ts="bantime", pretty="BanTime", type="DurationSeconds" },
+	{ map="banreason", ts="banreason", pretty="BanReason", type="str" },
+	{ map="begin_pos", ts="begin_pos", pretty="Offset", type="u64" }, # integer, size guessed
+	{ map="beta", ts="beta", pretty="Beta", type="str" },
+	{ map="cfid", ts="cfid", pretty="SourceChannelId", type="ChannelId" },
+	{ map="cgi", ts="cgi", pretty="ChannelGroupIndex", type="ChannelGroupId" },
+	{ map="cgid", ts="cgid", pretty="ChannelGroup", type="ChannelGroupId" }, # TODO: Consider name 'ChannelGroup' for consistency
+	{ map="channel_banner_gfx_url", ts="channel_banner_gfx_url", pretty="BannerGfxUrl", type="str" },
+	{ map="channel_banner_mode", ts="channel_banner_mode", pretty="BannerMode", type="str" }, # ?? Same as HostBannerMode maybe? There's no ui for this setting
+	{ map="channel_codec", ts="channel_codec", pretty="Codec", type="Codec" },
+	{ map="channel_codec_is_unencrypted", ts="channel_codec_is_unencrypted", pretty="IsUnencrypted", type="bool" },
+	{ map="channel_codec_latency_factor", ts="channel_codec_latency_factor", pretty="CodecLatencyFactor", type="i32" },
+	{ map="channel_codec_quality", ts="channel_codec_quality", pretty="CodecQuality", type="u8" },
+	{ map="channel_delete_delay", ts="channel_delete_delay", pretty="DeleteDelay", type="DurationSeconds" },
+	{ map="channel_description", ts="channel_description", pretty="Description", type="str" },
+	{ map="channel_filepath", ts="channel_filepath", pretty="FilePath", type="str" },
+	{ map="channel_flag_default", ts="channel_flag_default", pretty="IsDefault", type="bool" },
+	{ map="channel_flag_maxclients_unlimited", ts="channel_flag_maxclients_unlimited", pretty="IsMaxClientsUnlimited", type="bool" },
+	{ map="channel_flag_maxfamilyclients_inherited", ts="channel_flag_maxfamilyclients_inherited", pretty="InheritsMaxFamilyClients", type="bool" },
+	{ map="channel_flag_maxfamilyclients_unlimited", ts="channel_flag_maxfamilyclients_unlimited", pretty="IsMaxFamilyClientsUnlimited", type="bool" },
+	{ map="channel_flag_password", ts="channel_flag_password", pretty="HasPassword", type="bool" },
+	{ map="channel_flag_permanent", ts="channel_flag_permanent", pretty="IsPermanent", type="bool" },
+	{ map="channel_flag_private", ts="channel_flag_private", pretty="IsPrivate", type="bool" },
+	{ map="channel_flag_semi_permanent", ts="channel_flag_semi_permanent", pretty="IsSemiPermanent", type="bool" },
+	{ map="channel_forced_silence", ts="channel_forced_silence", pretty="ForcedSilence", type="bool" },
+	{ map="channel_icon_id", ts="channel_icon_id", pretty="Icon", type="IconId" },
+	{ map="channel_maxclients", ts="channel_maxclients", pretty="MaxClients", type="i32" }, # should be u16, but teamspeak sometimes sends '-1'
+	{ map="channel_maxfamilyclients", ts="channel_maxfamilyclients", pretty="MaxFamilyClients", type="i32" }, # should be u16, but teamspeak sometimes sends '-1'
+	{ map="channel_name", ts="channel_name", pretty="Name", type="str" },
+	{ map="channel_name_phonetic", ts="channel_name_phonetic", pretty="PhoneticName", type="str" },
+	{ map="channel_needed_subscribe_power", ts="channel_needed_subscribe_power", pretty="NeededSubscribePower", type="i32" },
+	{ map="channel_needed_talk_power", ts="channel_needed_talk_power", pretty="NeededTalkPower", type="i32" },
+	{ map="channel_order", ts="channel_order", pretty="Order", type="ChannelId" },
+	{ map="channel_password", ts="channel_password", pretty="Password", type="str" },
+	{ map="channel_security_salt", ts="channel_security_salt", pretty="PasswordSalt", type="str" },
+	{ map="channel_storage_quota", ts="channel_storage_quota", pretty="StorageQuota", type="u32" },
+	{ map="channel_topic", ts="channel_topic", pretty="Topic", type="str" },
+	{ map="channel_unique_identifier", ts="channel_unique_identifier", pretty="Guid", type="str" },
+	{ map="cid", ts="cid", pretty="ChannelId", type="ChannelId" },
+	{ map="cldbid", ts="cldbid", pretty="ClientDbId", type="ClientDbId" },
+	{ map="clid", ts="clid", pretty="ClientId", type="ClientId" },
+	{ map="client_away", ts="client_away", pretty="IsAway", type="bool" },
+	{ map="client_away_message", ts="client_away_message", pretty="AwayMessage", type="str" },
+	{ map="client_badges", ts="client_badges", pretty="Badges", type="str" },
+	{ map="client_signed_badges", ts="client_signed_badges", pretty="SignedBadges", type="str" },
+	{ map="client_base64HashClientUID", ts="client_base64HashClientUID", pretty="Base64HashClientUid", type="str" },
+	{ map="client_channel_group_id", ts="client_channel_group_id", pretty="ChannelGroup", type="ChannelGroupId" },
+	{ map="client_channel_group_inherited_channel_id", ts="client_channel_group_inherited_channel_id", pretty="InheritedChannelGroupFromChannel", type="ChannelId" },
+	{ map="client_channel_id", ts="client_channel_id", pretty="ChannelId", type="ChannelId" },
+	{ map="client_country", ts="client_country", pretty="CountryCode", type="str" },
+	{ map="client_created", ts="client_created", pretty="Created", type="DateTime" },
+	{ map="client_database_id", ts="client_database_id", pretty="DatabaseId", type="ClientDbId" },
+	{ map="client_default_channel", ts="client_default_channel", pretty="DefaultChannel", type="str" },
+	{ map="client_default_channel_password", ts="client_default_channel_password", pretty="DefaultChannelPassword", type="str" },
+	{ map="client_default_token", ts="client_default_token", pretty="DefaultToken", type="str" },
+	{ map="client_description", ts="client_description", pretty="Description", type="str" },
+	{ map="client_estimated_location", ts="client_estimated_location", pretty="EstimatedLocation", type="str" },
+	{ map="client_flag_avatar", ts="client_flag_avatar", pretty="AvatarHash", type="str" },
+	{ map="client_flag_talking", ts="client_flag_talking", pretty="IsTalking", type="bool" },
+	{ map="client_icon_id", ts="client_icon_id", pretty="Icon", type="IconId" },
+	{ map="client_id", ts="client_id", pretty="ClientId", type="ClientId" },
+	{ map="client_idle_time", ts="client_idle_time", pretty="ClientIdleTime", type="DurationMilliseconds" },
+	{ map="client_input_hardware", ts="client_input_hardware", pretty="InputHardwareEnabled", type="bool" },
+	{ map="client_input_muted", ts="client_input_muted", pretty="InputMuted", type="bool" },
+	{ map="client_integrations", ts="client_integrations", pretty="Integrations", type="str" }, # type guessed
+	{ map="client_active_integrations_info", ts="client_active_integrations_info", pretty="ActiveIntegrationsInfo", type="str" }, # type guessed
+	{ map="client_is_channel_commander", ts="client_is_channel_commander", pretty="IsChannelCommander", type="bool" },
+	{ map="client_is_priority_speaker", ts="client_is_priority_speaker", pretty="IsPrioritySpeaker", type="bool" },
+	{ map="client_is_recording", ts="client_is_recording", pretty="IsRecording", type="bool" },
+	{ map="client_is_talker", ts="client_is_talker", pretty="TalkPowerGranted", type="bool" },
+	{ map="client_key_offset", ts="client_key_offset", pretty="ClientKeyOffset", type="u64" },
+	{ map="client_lastconnected", ts="client_lastconnected", pretty="LastConnected", type="DateTime" },
+	{ map="client_lastip", ts="client_lastip", pretty="LastIp", type="str" },
+	{ map="client_login_name", ts="client_login_name", pretty="LoginName", type="str" },
+	{ map="client_login_password", ts="client_login_password", pretty="LoginPassword", type="str" },
+	{ map="client_meta_data", ts="client_meta_data", pretty="Metadata", type="str" },
+	{ map="client_month_bytes_downloaded", ts="client_month_bytes_downloaded", pretty="BytesDownloadedMonth", type="u64" },
+	{ map="client_month_bytes_uploaded", ts="client_month_bytes_uploaded", pretty="BytesUploadedMonth", type="u64" },
+	{ map="client_myteamspeak_id", ts="client_myteamspeak_id", pretty="MyTeamSpeakId", type="str" }, # type guessed
+	{ map="client_myteamspeak_avatar", ts="client_myteamspeak_avatar", pretty="MyTeamSpeakAvatar", type="str" }, # type guessed
+	{ map="client_needed_serverquery_view_power", ts="client_needed_serverquery_view_power", pretty="NeededServerqueryViewPower", type="i32" },
+	{ map="client_nickname", ts="client_nickname", pretty="Name", type="str" },
+	{ map="client_nickname@initserver", ts="client_nickname", pretty="ClientName", type="str" }, # Mirrored
+	{ map="client_nickname_phonetic", ts="client_nickname_phonetic", pretty="PhoneticName", type="str" },
+	{ map="client_nickname_phonetic@initserver", ts="client_nickname_phonetic", pretty="ClientPhoneticName", type="str" }, # Mirrored
+	{ map="client_origin_server_id", ts="client_origin_server_id", pretty="OriginServerId", type="u64" },
+	{ map="client_output_hardware", ts="client_output_hardware", pretty="OutputHardwareEnabled", type="bool" },
+	{ map="client_output_muted", ts="client_output_muted", pretty="OutputMuted", type="bool" },
+	{ map="client_outputonly_muted", ts="client_outputonly_muted", pretty="OutputOnlyMuted", type="bool" },
+	{ map="client_platform", ts="client_platform", pretty="Platform", type="str" },
+	{ map="client_platform@initserver", ts="client_platform", pretty="ClientPlatform", type="str" }, # Mirrored
+	{ map="client_security_hash", ts="client_security_hash", pretty="SecurityHash", type="str" },
+	{ map="client_server_password", ts="client_server_password", pretty="Password", type="str" },
+	{ map="client_servergroups", ts="client_servergroups", pretty="ServerGroups", type="ServerGroupId", mod="array" },
+	{ map="client_talk_power", ts="client_talk_power", pretty="TalkPower", type="i32" },
+	{ map="client_talk_request", ts="client_talk_request", pretty="TalkPowerRequestTime", type="DateTime" }, # 0 means no talk request
+	{ map="client_talk_request@clientupdate", ts="client_talk_request", pretty="TalkPowerRequest", type="bool" },
+	{ map="client_talk_request_msg", ts="client_talk_request_msg", pretty="TalkPowerRequestMessage", type="str" },
+	{ map="client_total_bytes_downloaded", ts="client_total_bytes_downloaded", pretty="BytesDownloadedTotal", type="u64" },
+	{ map="client_total_bytes_uploaded", ts="client_total_bytes_uploaded", pretty="BytesUploadedTotal", type="u64" },
+	{ map="client_totalconnections", ts="client_totalconnections", pretty="ConnectionsTotal", type="u32" },
+	{ map="client_type", ts="client_type", pretty="ClientType", type="ClientType" },
+	{ map="client_unique_identifier", ts="client_unique_identifier", pretty="Uid", type="Uid" },
+	{ map="client_unread_messages", ts="client_unread_messages", pretty="UnreadMessages", type="u32" },
+	{ map="client_user_tag", ts="client_user_tag", pretty="UserTag", type="str" },
+	{ map="client_version", ts="client_version", pretty="Version", type="str" },
+	{ map="client_version@initserver", ts="client_version", pretty="ClientVersion", type="str" }, # Mirrored
+	{ map="client_version_sign", ts="client_version_sign", pretty="VersionSign", type="str" },
+	{ map="client_version_sign@initserver", ts="client_version_sign", pretty="ClientVersionSign", type="str" }, # Mirrored
+	{ map="clientftfid", ts="clientftfid", pretty="ClientFiletransferId", type="u16" },
+	{ map="cluid", ts="cluid", pretty="ClientUid", type="Uid" },
+	{ map="connection_bandwidth_received_last_minute_control", ts="connection_bandwidth_received_last_minute_control", pretty="BandwidthReceivedLastMinuteControl", type="u64" },
+	{ map="connection_bandwidth_received_last_minute_keepalive", ts="connection_bandwidth_received_last_minute_keepalive", pretty="BandwidthReceivedLastMinuteKeepalive", type="u64" },
+	{ map="connection_bandwidth_received_last_minute_speech", ts="connection_bandwidth_received_last_minute_speech", pretty="BandwidthReceivedLastMinuteSpeech", type="u64" },
+	{ map="connection_bandwidth_received_last_minute_total", ts="connection_bandwidth_received_last_minute_total", pretty="BandwidthReceivedLastMinuteTotal", type="u64" },
+	{ map="connection_bandwidth_received_last_second_control", ts="connection_bandwidth_received_last_second_control", pretty="BandwidthReceivedLastSecondControl", type="u64" },
+	{ map="connection_bandwidth_received_last_second_keepalive", ts="connection_bandwidth_received_last_second_keepalive", pretty="BandwidthReceivedLastSecondKeepalive", type="u64" },
+	{ map="connection_bandwidth_received_last_second_speech", ts="connection_bandwidth_received_last_second_speech", pretty="BandwidthReceivedLastSecondSpeech", type="u64" },
+	{ map="connection_bandwidth_received_last_second_total", ts="connection_bandwidth_received_last_second_total", pretty="BandwidthReceivedLastSecondTotal", type="u64" },
+	{ map="connection_bandwidth_sent_last_minute_control", ts="connection_bandwidth_sent_last_minute_control", pretty="BandwidthSentLastMinuteControl", type="u64" },
+	{ map="connection_bandwidth_sent_last_minute_keepalive", ts="connection_bandwidth_sent_last_minute_keepalive", pretty="BandwidthSentLastMinuteKeepalive", type="u64" },
+	{ map="connection_bandwidth_sent_last_minute_speech", ts="connection_bandwidth_sent_last_minute_speech", pretty="BandwidthSentLastMinuteSpeech", type="u64" },
+	{ map="connection_bandwidth_sent_last_minute_total", ts="connection_bandwidth_sent_last_minute_total", pretty="BandwidthSentLastMinuteTotal", type="u64" },
+	{ map="connection_bandwidth_sent_last_second_control", ts="connection_bandwidth_sent_last_second_control", pretty="BandwidthSentLastSecondControl", type="u64" },
+	{ map="connection_bandwidth_sent_last_second_keepalive", ts="connection_bandwidth_sent_last_second_keepalive", pretty="BandwidthSentLastSecondKeepalive", type="u64" },
+	{ map="connection_bandwidth_sent_last_second_speech", ts="connection_bandwidth_sent_last_second_speech", pretty="BandwidthSentLastSecondSpeech", type="u64" },
+	{ map="connection_bandwidth_sent_last_second_total", ts="connection_bandwidth_sent_last_second_total", pretty="BandwidthSentLastSecondTotal", type="u64" },
+	{ map="connection_bytes_received_control", ts="connection_bytes_received_control", pretty="BytesReceivedControl", type="u64" },
+	{ map="connection_bytes_received_keepalive", ts="connection_bytes_received_keepalive", pretty="BytesReceivedKeepalive", type="u64" },
+	{ map="connection_bytes_received_speech", ts="connection_bytes_received_speech", pretty="BytesReceivedSpeech", type="u64" },
+	{ map="connection_bytes_received_total", ts="connection_bytes_received_total", pretty="BytesReceivedTotal", type="u64" },
+	{ map="connection_bytes_sent_control", ts="connection_bytes_sent_control", pretty="BytesSentControl", type="u64" },
+	{ map="connection_bytes_sent_keepalive", ts="connection_bytes_sent_keepalive", pretty="BytesSentKeepalive", type="u64" },
+	{ map="connection_bytes_sent_speech", ts="connection_bytes_sent_speech", pretty="BytesSentSpeech", type="u64" },
+	{ map="connection_bytes_sent_total", ts="connection_bytes_sent_total", pretty="BytesSentTotal", type="u64" },
+	{ map="connection_client_ip", ts="connection_client_ip", pretty="Ip", type="str" },
+	{ map="connection_client_port", ts="connection_client_port", pretty="Port", type="u16" },
+	{ map="connection_client2server_packetloss_control", ts="connection_client2server_packetloss_control", pretty="ClientToServerPacketlossControl", type="f32" },
+	{ map="connection_client2server_packetloss_keepalive", ts="connection_client2server_packetloss_keepalive", pretty="ClientToServerPacketlossKeepalive", type="f32" },
+	{ map="connection_client2server_packetloss_speech", ts="connection_client2server_packetloss_speech", pretty="ClientToServerPacketlossSpeech", type="f32" },
+	{ map="connection_client2server_packetloss_total", ts="connection_client2server_packetloss_total", pretty="ClientToServerPacketlossTotal", type="f32" },
+	{ map="connection_connected_time", ts="connection_connected_time", pretty="ConnectedTime", type="DurationMilliseconds" },
+	{ map="connection_connected_time@server", ts="connection_connected_time", pretty="ConnectedTimeTotal", type="DurationSeconds" },
+	{ map="connection_filetransfer_bandwidth_received", ts="connection_filetransfer_bandwidth_received", pretty="FiletransferBandwidthReceived", type="u64" },
+	{ map="connection_filetransfer_bandwidth_sent", ts="connection_filetransfer_bandwidth_sent", pretty="FiletransferBandwidthSent", type="u64" },
+	{ map="connection_filetransfer_bytes_received_total", ts="connection_filetransfer_bytes_received_total", pretty="FiletransferBytesReceivedTotal", type="u64" },
+	{ map="connection_filetransfer_bytes_sent_total", ts="connection_filetransfer_bytes_sent_total", pretty="FiletransferBytesSentTotal", type="u64" },
+	{ map="connection_idle_time", ts="connection_idle_time", pretty="IdleTime", type="DurationMilliseconds" },
+	{ map="connection_packetloss_total", ts="connection_packetloss_total", pretty="PacketlossTotal", type="f32" },
+	{ map="connection_packets_received_control", ts="connection_packets_received_control", pretty="PacketsReceivedControl", type="u64" },
+	{ map="connection_packets_received_keepalive", ts="connection_packets_received_keepalive", pretty="PacketsReceivedKeepalive", type="u64" },
+	{ map="connection_packets_received_speech", ts="connection_packets_received_speech", pretty="PacketsReceivedSpeech", type="u64" },
+	{ map="connection_packets_received_total", ts="connection_packets_received_total", pretty="PacketsReceivedTotal", type="u64" },
+	{ map="connection_packets_sent_control", ts="connection_packets_sent_control", pretty="PacketsSentControl", type="u64" },
+	{ map="connection_packets_sent_keepalive", ts="connection_packets_sent_keepalive", pretty="PacketsSentKeepalive", type="u64" },
+	{ map="connection_packets_sent_speech", ts="connection_packets_sent_speech", pretty="PacketsSentSpeech", type="u64" },
+	{ map="connection_packets_sent_total", ts="connection_packets_sent_total", pretty="PacketsSentTotal", type="u64" },
+	{ map="connection_ping", ts="connection_ping", pretty="Ping", type="DurationMillisecondsFloat" },
+	{ map="connection_ping_deviation", ts="connection_ping_deviation", pretty="PingDeviation", type="DurationMillisecondsFloat" },
+	{ map="connection_server2client_packetloss_control", ts="connection_server2client_packetloss_control", pretty="ServerToClientPacketlossControl", type="f32" },
+	{ map="connection_server2client_packetloss_keepalive", ts="connection_server2client_packetloss_keepalive", pretty="ServerToClientPacketlossKeepalive", type="f32" },
+	{ map="connection_server2client_packetloss_speech", ts="connection_server2client_packetloss_speech", pretty="ServerToClientPacketlossSpeech", type="f32" },
+	{ map="connection_server2client_packetloss_total", ts="connection_server2client_packetloss_total", pretty="ServerToClientPacketlossTotal", type="f32" },
+	{ map="cpid", ts="cpid", pretty="ParentId", type="ChannelId" },
+	{ map="cpw", ts="cpw", pretty="ChannelPassword", type="str" },
+	{ map="created", ts="created", pretty="Created", type="DateTime" },
+	{ map="ctid", ts="ctid", pretty="TargetChannelId", type="ChannelId" },
+	{ map="current_speed", ts="current_speed", pretty="CurrentSpeed", type="f32" },
+	{ map="data", ts="data", pretty="Data", type="str" },
+	{ map="datetime", ts="datetime", pretty="DateTime", type="DateTime" },
+	{ map="delete", ts="delete", pretty="Delete", type="bool" },
+	{ map="desc", ts="desc", pretty="Description", type="str" },
+	{ map="dirname", ts="dirname", pretty="DirectoryName", type="str" },
+	{ map="duration@time", ts="duration", pretty="Duration", type="DurationSeconds" },
+	{ map="duration@list", ts="duration", pretty="Limit", type="u32" }, # integer, size guessed
+	# How often a banned client wanted to connect but was denied
+	{ map="enforcements", ts="enforcements", pretty="Enforcements", type="u32" },
+	{ map="es", ts="es", pretty="EmptySince", type="DurationSeconds" },
+	{ map="end", ts="end", pretty="End", type="DateTime" },
+	{ map="event", ts="event", pretty="EventType", type="str" }, # {server|channel|textserver|textchannel|textprivate}
+	{ map="fcldbid", ts="fcldbid", pretty="FromClientDbId", type="ClientDbId" },
+	{ map="file_size", ts="file_size", pretty="FileSize", type="u64" },
+	{ map="flag", ts="flag", pretty="IsRead", type="bool" },
+	{ map="flags@channel_ph", ts="flags", pretty="Flags", type="ChannelPermissionHint" },
+	{ map="flags@client_ph", ts="flags", pretty="Flags", type="ClientPermissionHint" },
+	{ map="flag_read", ts="flag_read", pretty="IsRead", type="bool" },
+	{ map="fname", ts="fname", pretty="FromName", type="str" },
+	{ map="ftkey", ts="ftkey", pretty="FiletransferKey", type="str" },
+	{ map="force", ts="force", pretty="Force", type="bool" },
+	{ map="group_id_end", ts="group_id_end", pretty="GroupIdEnd", type="PermissionId" }, # describes how permissions are grouped in the client ui
+	{ map="hwid", ts="hwid", pretty="HardwareId", type="str" },
+	{ map="iconid", ts="iconid", pretty="Icon", type="IconId" },
+	{ map="id", ts="id", pretty="Id", type="ChannelId" },
+	{ map="id1", ts="id1", pretty="Id1", type="u64" }, # {ServerGroupId|ClientDbId|ChannelId}
+	{ map="id2", ts="id2", pretty="Id2", type="u64" }, # {0|ChannelGroupId|ClientDbId}
+	{ map="ident", ts="ident", pretty="ExternalIdentity", type="str" },
+	{ map="ip", ts="ip", pretty="Ip", type="IpAddr" },
+	{ map="instance", ts="instance", pretty="InstanceLog", type="bool" },
+	{ map="invokerid", ts="invokerid", pretty="InvokerId", type="ClientId" },
+	{ map="invokercldbid", ts="invokercldbid", pretty="InvokerDatabaseId", type="ClientDbId" },
+	{ map="invokername", ts="invokername", pretty="InvokerName", type="str" },
+	{ map="invokeruid", ts="invokeruid", pretty="InvokerUid", type="Uid" },
+	{ map="lastnickname", ts="lastnickname", pretty="LastNickname", type="str" },
+	{ map="last_pos", ts="last_pos", pretty="LastOffset", type="u64" }, # integer, size guessed
+	{ map="lines", ts="lines", pretty="Lines", type="u32" }, # integer, size guessed
+	{ map="log", ts="l", pretty="Log", type="str" }, # one argument per line
+	{ map="logmsg", ts="logmsg", pretty="LogMessage", type="str" },
+	{ map="loglevel", ts="loglevel", pretty="LogLevel", type="LogLevel" },
+	{ map="lt", ts="lt", pretty="LicenseType", type="LicenseType" },
+	{ map="msg", ts="msg", pretty="Message", type="str" },
+	{ map="msgid", ts="msgid", pretty="MessageId", type="u32" }, # integer, size guessed
+	{ map="message", ts="message", pretty="Message", type="str" },
+	{ map="mytsid", ts="mytsid", pretty="MyTsId", type="str" },
+	{ map="n", ts="n", pretty="PermissionNegated", type="bool" },
+	{ map="n_member_addp", ts="n_member_addp", pretty="NeededMemberAddPower", type="i32" },
+	{ map="n_member_removep", ts="n_member_removep", pretty="NeededMemberRemovePower", type="i32" },
+	{ map="n_modifyp", ts="n_modifyp", pretty="NeededModifyPower", type="i32" },
+	{ map="name", ts="name", pretty="Name", type="str" },
+	{ map="namemode", ts="namemode", pretty="NamingMode", type="GroupNamingMode" },
+	{ map="newname", ts="newname", pretty="NewName", type="str" },
+	{ map="nickname", ts="nickname", pretty="Nickname", type="str" },
+	{ map="oldname", ts="oldname", pretty="OldName", type="str" },
+	{ map="omega", ts="omega", pretty="Omega", type="str" },
+	{ map="order", ts="order", pretty="Order", type="ChannelId" },
+	{ map="overwrite", ts="overwrite", pretty="Overwrite", type="bool" },
+	{ map="p", ts="p", pretty="PermissionId", type="PermissionId" },
+	{ map="path", ts="path", pretty="Path", type="str" },
+	{ map="pattern", ts="pattern", pretty="Pattern", type="str" }, # sometimes Regex/SQL Wildcards
+	{ map="permid", ts="permid", pretty="PermissionId", type="PermissionId" },
+	{ map="permnegated", ts="permnegated", pretty="PermissionNegated", type="bool" },
+	{ map="permsid", ts="permsid", pretty="PermissionNameId", type="str" },
+	{ map="permskip", ts="permskip", pretty="PermissionSkip", type="bool" },
+	{ map="permvalue", ts="permvalue", pretty="PermissionValue", type="i32" },
+	{ map="permname", ts="permname", pretty="PermissionName", type="str" },
+	{ map="permdesc", ts="permdesc", pretty="PermissionDescription", type="str" },
+	{ map="pid", ts="pid", pretty="ParentChannelId", type="ChannelId" },
+	{ map="port", ts="port", pretty="Port", type="u16" },
+	{ map="proto", ts="proto", pretty="Protocol", type="u8" },
+	{ map="pv", ts="pv", pretty="ProtocolVersion", type="u16" },
+	{ map="pw", ts="pw", pretty="Password", type="str" },
+	# TODO maybe find better name when know what this is
+	{ map="pw_clear", ts="pw_clear", pretty="PasswordClear", type="str" },
+	{ map="reasonid", ts="reasonid", pretty="Reason", type="Reason" },
+	{ map="reason", ts="reason", pretty="Reason", type="str" },
+	{ map="reasonmsg", ts="reasonmsg", pretty="ReasonMessage", type="str" },
+	{ map="resume", ts="resume", pretty="Resume", type="bool" },
+	{ map="reverse", ts="reverse", pretty="Reverse", type="bool" },
+	{ map="runtime", ts="runtime", pretty="Runtime", type="DurationSeconds" },
+	{ map="s", ts="s", pretty="PermissionSkip", type="bool" },
+	{ map="savedb", ts="savedb", pretty="IsPermanent", type="bool" },
+	{ map="scgid", ts="scgid", pretty="SourceChannelGroupId", type="ChannelGroupId" },
+	{ map="seconds_empty", ts="seconds_empty", pretty="DurationEmpty", type="DurationSeconds" },
+	{ map="seekpos", ts="seekpos", pretty="SeekPosition", type="u64" },
+	# ?? type
+	{ map="sender", ts="sender", pretty="Sender", type="u64" },
+	{ map="serverftfid", ts="serverftfid", pretty="ServerFiletransferId", type="u16" },
+	{ map="sgid", ts="sgid", pretty="ServerGroupId", type="ServerGroupId" },
+	{ map="sgtype", ts="sgtype", pretty="ServerGroupType", type="u32" }, # integer, size guessed
+	{ map="sid", ts="sid", pretty="ServerId", type="u32" }, # integer, size guessed, maybe own type ServerId ?
+	{ map="size", ts="size", pretty="Size", type="u64" },
+	{ map="sizedone", ts="sizedone", pretty="SizeDone", type="i64" },
+	{ map="sortid", ts="sortid", pretty="SortId", type="i32" },
+	{ map="ssgid", ts="ssgid", pretty="SourceServerGroupId", type="ServerGroupId" },
+	{ map="subject", ts="subject", pretty="Subject", type="str" },
+	{ map="subsystem", ts="subsystem", pretty="Subsystem", type="str" }, # {'voice'|'query'|'filetransfer'}
+	{ map="status@err", ts="status", pretty="Status", type="Ts3ErrorCode" },
+	{ map="status@ft", ts="status", pretty="Status", type="i32" },
+	{ map="start@list", ts="start", pretty="Offset", type="u32" }, # integer, size guessed
+	{ map="start@tmppw", ts="start", pretty="Start", type="DateTime" },
+	{ map="t", ts="t", pretty="PermissionType", type="PermissionType" },
+	{ map="target@msg", ts="target", pretty="TargetClientId", type="ClientId" },
+	{ map="target@plugin", ts="target", pretty="TargetClientId", type="ClientId" },
+	{ map="targetmode@msg", ts="targetmode", pretty="Target", type="TextMessageTargetMode" },
+	{ map="targetmode@plugin", ts="targetmode", pretty="Target", type="PluginTargetMode" },
+	{ map="tcgid", ts="tcgid", pretty="TargetChannelGroupId", type="ChannelGroupId" },
+	{ map="tcid", ts="tcid", pretty="TargetChannelId", type="ChannelId" },
+	{ map="tcpw", ts="tcpw", pretty="TargetChannelPassword", type="str" },
+	{ map="tcldbid", ts="tcldbid", pretty="TargetClientDbId", type="ClientDbId" },
+	{ map="time", ts="time", pretty="Time", type="DurationSeconds" },
+	{ map="time@initivexpand2", ts="time", pretty="Time", type="DateTime" },
+	{ map="timestamp", ts="timestamp", pretty="Timestamp", type="DateTime" },
+	{ map="tname", ts="tname", pretty="TargetName", type="str" },
+	{ map="token", ts="token", pretty="Token", type="str" },
+	{ map="token_created", ts="token_created", pretty="TokenCreateTime", type="DateTime" },
+	{ map="token_description", ts="token_description", pretty="TokenDescription", type="str" },
+	{ map="tokendescription", ts="tokendescription", pretty="TokenDescription", type="str" },
+	{ map="token_id1", ts="token_id1", pretty="TokenId1", type="u64" }, # {ServerGroup|ChannelGroup}
+	{ map="tokenid1", ts="tokenid1", pretty="TokenId1", type="u64" }, # {ServerGroup|ChannelGroup}
+	{ map="token_id2", ts="token_id2", pretty="TokenId2", type="ChannelId" }, # ChannelId
+	{ map="tokenid2", ts="tokenid2", pretty="TokenId2", type="ChannelId" }, # ChannelId
+	{ map="token_type", ts="token_type", pretty="TokenType", type="TokenType" },
+	{ map="tokentype", ts="tokentype", pretty="TokenType", type="TokenType" },
+	{ map="token1", ts="token1", pretty="Token1", type="str" },
+	{ map="token2", ts="token2", pretty="Token2", type="str" },
+	{ map="tokencustomset", ts="tokencustomset", pretty="TokenCustomSet", type="str" },
+	{ map="total_clients", ts="total_clients", pretty="ClientsTotal", type="i32" },
+	{ map="total_clients_family", ts="total_clients_family", pretty="FamilyClientsTotal", type="i32" },
+	{ map="tsgid", ts="tsgid", pretty="TargetServerGroupId", type="ServerGroupId" },
+	{ map="type@ft", ts="type", pretty="IsFile", type="bool" },
+	{ map="type@group", ts="type", pretty="GroupType", type="GroupType" },
+	{ map="uid", ts="uid", pretty="Uid", type="Uid" },
+	{ map="v", ts="v", pretty="PermissionValue", type="i32" }, # integer, size guessed
+	{ map="value", ts="value", pretty="Value", type="str" },
+	{ map="virtualserver_administrative_domain", ts="virtualserver_administrative_domain", pretty="AdministrativeDomain", type="str" },
+	{ map="virtualserver_antiflood_points_tick_reduce", ts="virtualserver_antiflood_points_tick_reduce", pretty="AntifloodPointsTickReduce", type="u32" },
+	{ map="virtualserver_antiflood_points_needed_command_block", ts="virtualserver_antiflood_points_needed_command_block", pretty="AntifloodPointsToCommandBlock", type="u32" },
+	{ map="virtualserver_antiflood_points_needed_ip_block", ts="virtualserver_antiflood_points_needed_ip_block", pretty="AntifloodPointsToIpBlock", type="u32" },
+	{ map="virtualserver_antiflood_points_needed_plugin_block", ts="virtualserver_antiflood_points_needed_plugin_block", pretty="AntifloodPointsToPluginBlock", type="u32" },
+	{ map="virtualserver_ask_for_privilegekey", ts="virtualserver_ask_for_privilegekey", pretty="AskForPrivilegekey", type="bool" },
+	{ map="virtualserver_autostart", ts="virtualserver_autostart", pretty="Autostart", type="bool" },
+	{ map="virtualserver_capability_extensions", ts="virtualserver_capability_extensions", pretty="CapabilityExtensions", type="str" }, # TODO mod="array"?
+	{ map="virtualserver_channel_temp_delete_delay_default", ts="virtualserver_channel_temp_delete_delay_default", pretty="TempChannelDefaultDeleteDelay", type="DurationSeconds" },
+	{ map="virtualserver_channelsonline", ts="virtualserver_channelsonline", pretty="ChannelCount", type="u64" },
+	{ map="virtualserver_client_connections", ts="virtualserver_client_connections", pretty="ConnectionCountTotal", type="u64" },
+	{ map="virtualserver_clientsonline", ts="virtualserver_clientsonline", pretty="ClientCount", type="u16" },
+	{ map="virtualserver_codec_encryption_mode", ts="virtualserver_codec_encryption_mode", pretty="CodecEncryptionMode", type="CodecEncryptionMode" },
+	{ map="virtualserver_complain_autoban_count", ts="virtualserver_complain_autoban_count", pretty="ComplainAutobanCount", type="u32" },
+	{ map="virtualserver_complain_autoban_time", ts="virtualserver_complain_autoban_time", pretty="ComplainAutobanTime", type="DurationSeconds" },
+	{ map="virtualserver_complain_remove_time", ts="virtualserver_complain_remove_time", pretty="ComplainRemoveTime", type="DurationSeconds" },
+	{ map="virtualserver_created", ts="virtualserver_created", pretty="Created", type="DateTime" },
+	{ map="virtualserver_default_channel_group", ts="virtualserver_default_channel_group", pretty="DefaultChannelGroup", type="ChannelGroupId" },
+	{ map="virtualserver_default_channel_admin_group", ts="virtualserver_default_channel_admin_group", pretty="DefaultChannelAdminGroup", type="ChannelGroupId" },
+	{ map="virtualserver_default_server_group", ts="virtualserver_default_server_group", pretty="DefaultServerGroup", type="ServerGroupId" },
+	{ map="virtualserver_download_quota", ts="virtualserver_download_quota", pretty="DownloadQuota", type="u64" },
+	{ map="virtualserver_flag_password", ts="virtualserver_flag_password", pretty="HasPassword", type="bool" },
+	{ map="virtualserver_hostbanner_gfx_interval", ts="virtualserver_hostbanner_gfx_interval", pretty="HostbannerGfxInterval", type="DurationSeconds" },
+	{ map="virtualserver_hostbanner_gfx_url", ts="virtualserver_hostbanner_gfx_url", pretty="HostbannerGfxUrl", type="str" },
+	{ map="virtualserver_hostbanner_mode", ts="virtualserver_hostbanner_mode", pretty="HostbannerMode", type="HostBannerMode" },
+	{ map="virtualserver_hostbanner_url", ts="virtualserver_hostbanner_url", pretty="HostbannerUrl", type="str" },
+	{ map="virtualserver_hostbutton_gfx_url", ts="virtualserver_hostbutton_gfx_url", pretty="HostbuttonGfxUrl", type="str" },
+	{ map="virtualserver_hostbutton_tooltip", ts="virtualserver_hostbutton_tooltip", pretty="HostbuttonTooltip", type="str" },
+	{ map="virtualserver_hostbutton_url", ts="virtualserver_hostbutton_url", pretty="HostbuttonUrl", type="str" },
+	{ map="virtualserver_hostmessage", ts="virtualserver_hostmessage", pretty="Hostmessage", type="str" },
+	{ map="virtualserver_hostmessage_mode", ts="virtualserver_hostmessage_mode", pretty="HostmessageMode", type="HostMessageMode" },
+	{ map="virtualserver_icon_id", ts="virtualserver_icon_id", pretty="Icon", type="IconId" },
+	{ map="virtualserver_id", ts="virtualserver_id", pretty="VirtualServerId", type="u64" },
+	{ map="virtualserver_ip", ts="virtualserver_ip", pretty="Ips", type="IpAddr", mod="array" },
+	{ map="virtualserver_log_client", ts="virtualserver_log_client", pretty="LogClient", type="bool" },
+	{ map="virtualserver_log_query", ts="virtualserver_log_query", pretty="LogQuery", type="bool" },
+	{ map="virtualserver_log_channel", ts="virtualserver_log_channel", pretty="LogChannel", type="bool" },
+	{ map="virtualserver_log_permissions", ts="virtualserver_log_permissions", pretty="LogPermissions", type="bool" },
+	{ map="virtualserver_log_server", ts="virtualserver_log_server", pretty="LogServer", type="bool" },
+	{ map="virtualserver_log_filetransfer", ts="virtualserver_log_filetransfer", pretty="LogFiletransfer", type="bool" },
+	{ map="virtualserver_machine_id", ts="virtualserver_machine_id", pretty="MachineId", type="str" },
+	{ map="virtualserver_max_download_total_bandwidth", ts="virtualserver_max_download_total_bandwidth", pretty="MaxDownloadBandwidthTotal", type="u64" },
+	{ map="virtualserver_max_upload_total_bandwidth", ts="virtualserver_max_upload_total_bandwidth", pretty="MaxUploadBandwidthTotal", type="u64" },
+	{ map="virtualserver_maxclients", ts="virtualserver_maxclients", pretty="MaxClients", type="u16" },
+	{ map="virtualserver_min_android_version", ts="virtualserver_min_android_version", pretty="MinAndroidVersion", type="DateTime" },
+	{ map="virtualserver_min_client_version", ts="virtualserver_min_client_version", pretty="MinClientVersion", type="DateTime" },
+	{ map="virtualserver_min_clients_in_channel_before_forced_silence", ts="virtualserver_min_clients_in_channel_before_forced_silence", pretty="MinClientsInChannelBeforeForcedSilence", type="u32" },
+	{ map="virtualserver_min_ios_version", ts="virtualserver_min_ios_version", pretty="MinIosVersion", type="DateTime" },
+	{ map="virtualserver_month_bytes_downloaded", ts="virtualserver_month_bytes_downloaded", pretty="BytesDownloadedMonth", type="u64" },
+	{ map="virtualserver_month_bytes_uploaded", ts="virtualserver_month_bytes_uploaded", pretty="BytesUploadedMonth", type="u64" },
+	{ map="virtualserver_name", ts="virtualserver_name", pretty="Name", type="str" },
+	{ map="virtualserver_name_phonetic", ts="virtualserver_name_phonetic", pretty="PhoneticName", type="str" },
+	{ map="virtualserver_needed_identity_security_level", ts="virtualserver_needed_identity_security_level", pretty="NeededIdentitySecurityLevel", type="u8" },
+	{ map="virtualserver_nickname", ts="virtualserver_nickname", pretty="Nickname", type="str" }, # `:`-separated array
+	{ map="virtualserver_password", ts="virtualserver_password", pretty="Password", type="str" },
+	{ map="virtualserver_platform", ts="virtualserver_platform", pretty="Platform", type="str" },
+	{ map="virtualserver_port", ts="virtualserver_port", pretty="Port", type="u16" },
+	{ map="virtualserver_priority_speaker_dimm_modificator", ts="virtualserver_priority_speaker_dimm_modificator", pretty="PrioritySpeakerDimmModificator", type="f32" },
+	{ map="virtualserver_query_client_connections", ts="virtualserver_query_client_connections", pretty="QueryCountTotal", type="u64" },
+	{ map="virtualserver_queryclientsonline", ts="virtualserver_queryclientsonline", pretty="QueryCount", type="u32" },
+	{ map="virtualserver_reserved_slots", ts="virtualserver_reserved_slots", pretty="ReservedSlots", type="u16" },
+	{ map="virtualserver_status", ts="virtualserver_status", pretty="VirtualServerStatus", type="str" },
+	{ map="virtualserver_total_bytes_downloaded", ts="virtualserver_total_bytes_downloaded", pretty="BytesDownloadedTotal", type="u64" },
+	{ map="virtualserver_total_bytes_uploaded", ts="virtualserver_total_bytes_uploaded", pretty="BytesUploadedTotal", type="u64" },
+	{ map="virtualserver_total_packetloss_speech", ts="virtualserver_total_packetloss_speech", pretty="TotalPacketlossSpeech", type="f32" },
+	{ map="virtualserver_total_packetloss_keepalive", ts="virtualserver_total_packetloss_keepalive", pretty="TotalPacketlossKeepalive", type="f32" },
+	{ map="virtualserver_total_packetloss_control", ts="virtualserver_total_packetloss_control", pretty="TotalPacketlossControl", type="f32" },
+	{ map="virtualserver_total_packetloss_total", ts="virtualserver_total_packetloss_total", pretty="TotalPacketloss", type="f32" },
+	{ map="virtualserver_total_ping", ts="virtualserver_total_ping", pretty="TotalPing", type="DurationMillisecondsFloat" },
+	{ map="virtualserver_unique_identifier", ts="virtualserver_unique_identifier", pretty="VirtualServerUid", type="Uid" },
+	{ map="virtualserver_upload_quota", ts="virtualserver_upload_quota", pretty="UploadQuota", type="u64" },
+	{ map="virtualserver_uptime", ts="virtualserver_uptime", pretty="Uptime", type="DurationSeconds" },
+	{ map="virtualserver_version", ts="virtualserver_version", pretty="Version", type="str" },
+	{ map="virtualserver_weblist_enabled", ts="virtualserver_weblist_enabled", pretty="WeblistEnabled", type="bool" },
+	{ map="virtualserver_welcomemessage", ts="virtualserver_welcomemessage", pretty="WelcomeMessage", type="str" },
+
+	# Error stuff
+	{ map="error_id", ts="id", pretty="Id", type="Ts3ErrorCode" },
+	{ map="failed_permid", ts="failed_permid", pretty="MissingPermissionId", type="PermissionId" },
+	{ map="return_code", ts="return_code", pretty="ReturnCode", type="str" },
+	{ map="extra_msg", ts="extra_msg", pretty="ExtraMessage", type="str" },
+
+	# 3.1
+	{ map="l", ts="l", pretty="License", type="str" },
+	{ map="tvd", ts="tvd", pretty="Tvd", type="str" },
+	{ map="proof", ts="proof", pretty="Proof", type="str" },
+	{ map="ot", ts="ot", pretty="Ot", type="bool" },
+
+	# TeaSpeak
+	{ map="virtualserver_country", ts="virtualserver_country_code", pretty="CountryCode", type="str" },
+	{ map="virtualserver_default_music_group", ts="virtualserver_default_music_group", pretty="DefaultMusicGroup", type="ServerGroupId" },
+	{ map="root", ts="root", pretty="RootKey", type="str" },
+]
+
+# The "msg_group: array specifies all messages which can be sent between client
+# and server.
+# They are categorized into message groups whereby each group has a list of
+# default modifiers which are applied on each message in the group.
+# [Message structure]:
+# - "name": The high-level name of the message.
+# - "notify": The event name as teamspeak uses it (can be omitted when
+#   | response=true; this means that it can't be received without request).
+# - "attributes": The "map"-name from all fields which are a parameter of this
+#   | command. The map name can be suffixed with a '?' to make it optional.
+#   | All non-optional fields must be set when receiving this message,
+#   | otherwise the message can/should be considered as invalid.
+# [Message modifiers]:
+# - "s2c": This message can be received as client (read: "server to client")
+# - "c2s": This message can be received as server (read: "client to server")
+# - "response":
+#   | - true: This message can appear without the event name as an answer to
+#   |   | a request command (see "notify" before).
+#   | - false: This message will always be sent with the notify event name.
+# - "low": The "lowcommand" packet must be used for this command. (Ignore for
+#   | query).
+# - "np": The "newprotocol" flag must be set for this command. (Ignore for
+#   | query).
+
+# Client: "cid", "client_idle_time", "client_unique_identifier", "client_nickname", "client_version", "client_platform", "client_input_muted", "client_output_muted", "client_outputonly_muted", "client_input_hardware", "client_output_hardware", "client_default_channel", "client_meta_data", "client_is_recording", "client_version_sign", "client_security_hash", "client_login_name", "client_database_id", "client_channel_group_id", "client_servergroups", "client_created", "client_lastconnected", "client_totalconnections", "client_away", "client_away_message", "client_type", "client_flag_avatar", "client_talk_power", "client_talk_request", "client_talk_request_msg", "client_description", "client_is_talker", "client_month_bytes_uploaded", "client_month_bytes_downloaded", "client_total_bytes_uploaded", "client_total_bytes_downloaded", "client_is_priority_speaker", "client_unread_messages", "client_nickname_phonetic", "client_needed_serverquery_view_power", "client_default_token", "client_icon_id", "client_is_channel_commander", "client_country", "client_channel_group_inherited_channel_id", "client_badges", "client_myteamspeak_id", "client_integrations", "client_base64HashClientUID", "connection_filetransfer_bandwidth_sent", "connection_filetransfer_bandwidth_received", "connection_packets_sent_total", "connection_bytes_sent_total", "connection_packets_received_total", "connection_bytes_received_total", "connection_bandwidth_sent_last_second_total", "connection_bandwidth_sent_last_minute_total", "connection_bandwidth_received_last_second_total", "connection_bandwidth_received_last_minute_total", "connection_connected_time", "connection_client_ip"
+# Channel: "channel_order?", "channel_name?", "channel_topic?", "channel_flag_default?", "channel_flag_password?", "channel_flag_permanent?", "channel_flag_semi_permanent?", "channel_codec?", "channel_codec_quality?", "channel_needed_talk_power?", "channel_icon_id?", "channel_maxclients?", "channel_maxfamilyclients?", "channel_codec_latency_factor?", "channel_codec_is_unencrypted?", "channel_delete_delay?", "channel_flag_maxclients_unlimited?", "channel_flag_maxfamilyclients_unlimited?", "channel_flag_maxfamilyclients_inherited?", "channel_name_phonetic?", "cpid?"
+
+# Server to Client Notifications
+[[msg_group]]
+default = { s2c=true, c2s=false, response=false, low=false, np=false }
+msg = [
+	{ name="ChannelChanged",            notify="notifychannelchanged",            attributes=["cid"] },
+	{ name="ChannelDescriptionChanged", notify="notifychanneldescriptionchanged", attributes=["cid"] },
+	# TODO check with ChannelData
+	{ name="ChannelList",               notify="channellist",                     attributes=["cid", "cpid", "channel_name", "channel_topic", "channel_codec", "channel_codec_quality", "channel_maxclients", "channel_maxfamilyclients", "channel_order", "channel_flag_permanent", "channel_flag_semi_permanent", "channel_flag_default", "channel_flag_password", "channel_codec_latency_factor", "channel_codec_is_unencrypted", "channel_delete_delay", "channel_flag_maxclients_unlimited", "channel_flag_maxfamilyclients_unlimited", "channel_flag_maxfamilyclients_inherited", "channel_needed_talk_power", "channel_forced_silence", "channel_name_phonetic", "channel_icon_id", "channel_flag_private?", "channel_unique_identifier?", "channel_banner_gfx_url?", "channel_banner_mode?", "channel_storage_quota?"] },
+	{ name="ChannelListFinished",       notify="channellistfinished",             attributes=[] },
+	{ name="ChannelMoved",              notify="notifychannelmoved",              attributes=["order", "cid", "invokerid", "invokername", "invokeruid?", "reasonid", "cpid"] },
+	{ name="ChannelPasswordChanged",    notify="notifychannelpasswordchanged",    attributes=["cid"] },
+	{ name="ChannelPermissionHints",    notify="notifychannelpermhints",          attributes=["cid", "flags@channel_ph"] },
+	{ name="ChannelSubscribed",         notify="notifychannelsubscribed",         attributes=["cid", "es?"] },
+	{ name="ChannelUnsubscribed",       notify="notifychannelunsubscribed",       attributes=["cid"] },
+	{ name="ClientChannelGroupChanged", notify="notifyclientchannelgroupchanged", attributes=["invokerid", "invokername", "invokeruid?", "cgid", "cgi", "cid", "clid"] },
+	{ name="ClientChatClosed",          notify="notifyclientchatclosed",          attributes=["clid", "cluid"] },
+	{ name="ClientChatComposing",       notify="notifyclientchatcomposing",       attributes=["clid", "cluid"] },
+	{ name="ClientConnectionInfo",      notify="notifyconnectioninfo",            attributes=["clid", "connection_ping?", "connection_ping_deviation?", "connection_connected_time?", "connection_client_ip?", "connection_client_port?", "connection_packets_sent_speech?", "connection_packets_sent_keepalive?", "connection_packets_sent_control?", "connection_bytes_sent_speech?", "connection_bytes_sent_keepalive?", "connection_bytes_sent_control?", "connection_packets_received_speech?", "connection_packets_received_keepalive?", "connection_packets_received_control?", "connection_bytes_received_speech?", "connection_bytes_received_keepalive?", "connection_bytes_received_control?", "connection_server2client_packetloss_speech?", "connection_server2client_packetloss_keepalive?", "connection_server2client_packetloss_control?", "connection_server2client_packetloss_total?", "connection_client2server_packetloss_speech", "connection_client2server_packetloss_keepalive", "connection_client2server_packetloss_control", "connection_client2server_packetloss_total", "connection_bandwidth_sent_last_second_speech?", "connection_bandwidth_sent_last_second_keepalive?", "connection_bandwidth_sent_last_second_control?", "connection_bandwidth_sent_last_minute_speech?", "connection_bandwidth_sent_last_minute_keepalive?", "connection_bandwidth_sent_last_minute_control?", "connection_bandwidth_received_last_second_speech?", "connection_bandwidth_received_last_second_keepalive?", "connection_bandwidth_received_last_second_control?", "connection_bandwidth_received_last_minute_speech?", "connection_bandwidth_received_last_minute_keepalive?", "connection_bandwidth_received_last_minute_control?", "connection_filetransfer_bandwidth_sent?", "connection_filetransfer_bandwidth_received?", "connection_idle_time"] },
+	{ name="ClientConnectionInfoUpdateRequest", notify="notifyconnectioninforequest",     attributes=[] },
+	{ name="ClientEnterView",           notify="notifycliententerview",           attributes=["reasonid", "ctid", "invokerid?", "invokername?", "invokeruid?", "clid", "client_database_id", "client_nickname", "client_type", "cfid", "client_unique_identifier", "client_flag_avatar", "client_description", "client_icon_id", "client_input_muted", "client_output_muted", "client_outputonly_muted", "client_input_hardware", "client_output_hardware", "client_meta_data", "client_is_recording", "client_channel_group_id", "client_channel_group_inherited_channel_id", "client_servergroups", "client_away", "client_away_message", "client_talk_power", "client_talk_request", "client_talk_request_msg", "client_is_talker", "client_is_priority_speaker", "client_unread_messages", "client_nickname_phonetic", "client_needed_serverquery_view_power", "client_is_channel_commander", "client_country", "client_badges", "client_myteamspeak_id", "client_integrations", "client_myteamspeak_avatar?", "client_signed_badges?", "client_estimated_location?", "client_totalconnections?", "client_user_tag?"] },
+	{ name="ClientLeftView",            notify="notifyclientleftview",            attributes=["reasonmsg?", "bantime?", "reasonid?", "ctid", "invokerid?", "invokername?", "invokeruid?", "clid", "cfid"] },
+	{ name="ClientMoved",               notify="notifyclientmoved",               attributes=["clid", "reasonid", "cfid?", "ctid", "invokerid?", "invokername?", "invokeruid?", "reasonmsg?"] },
+	{ name="ClientNeededPermissions",   notify="notifyclientneededpermissions",   attributes=["permid", "permvalue?"] },
+	{ name="ClientPermissionHints",     notify="notifyclientpermhints",           attributes=["clid", "flags@client_ph"] },
+	{ name="ClientServerGroupAdded",    notify="notifyservergroupclientadded",    attributes=["name", "sgid", "invokerid", "invokername", "invokeruid?", "clid", "cluid"] },
+	{ name="ClientServerGroupRemoved",  notify="notifyservergroupclientdeleted",  attributes=["name", "sgid", "invokerid", "invokername", "invokeruid?", "clid", "cluid"] },
+	{ name="ClientUpdated",             notify="notifyclientupdated",             attributes=["clid", "invokerid?", "invokername?", "invokeruid?", "client_nickname?", "client_unread_messages?", "client_version?", "client_platform?", "client_login_name?", "client_created?", "client_lastconnected?", "client_totalconnections?", "client_month_bytes_uploaded?", "client_month_bytes_downloaded?", "client_total_bytes_uploaded?", "client_total_bytes_downloaded?", "client_input_muted?", "client_input_hardware?", "client_output_muted?", "client_meta_data?", "client_output_hardware?", "client_description?", "client_is_priority_speaker?", "client_is_channel_commander?", "client_flag_avatar?", "client_signed_badges?", "client_talk_request?", "client_talk_request_msg?", "client_is_talker?", "client_nickname_phonetic?", "client_is_recording?", "client_servergroups?", "client_myteamspeak_id?", "client_badges?", "client_myteamspeak_avatar?", "client_talk_power?", "client_icon_id?", "client_away?", "client_away_message?", "client_channel_group_inherited_channel_id?", "client_channel_group_id?", "client_needed_serverquery_view_power?", "client_user_tag?"] },
+	{ name="CommandError",              notify="error",                           attributes=["error_id", "msg", "failed_permid?", "return_code?", "extra_msg?"] },
+	{ name="FileListFinished",          notify="notifyfilelistfinished",          attributes=["cid", "path"] },
+	{ name="FiletransferStatus",        notify="notifystatusfiletransfer",        attributes=["clientftfid", "status@err", "msg", "size"] },
+	{ name="InitIvExpand",              notify="initivexpand",                    attributes=["alpha", "beta", "omega"] },
+	{ name="InitIvExpand2",             notify="initivexpand2",                   attributes=["l", "beta", "omega", "ot?", "proof", "tvd", "time@initivexpand2?", "root?"] },
+	{ name="InitServer",                notify="initserver",                      attributes=["virtualserver_name", "virtualserver_welcomemessage", "virtualserver_platform", "virtualserver_version", "virtualserver_maxclients", "virtualserver_created", "virtualserver_codec_encryption_mode", "virtualserver_hostmessage", "virtualserver_hostmessage_mode", "virtualserver_default_server_group", "virtualserver_default_channel_group", "virtualserver_id", "virtualserver_ip?", "virtualserver_ask_for_privilegekey", "lt?", "virtualserver_hostbanner_url", "virtualserver_hostbanner_gfx_url", "virtualserver_hostbanner_gfx_interval", "virtualserver_priority_speaker_dimm_modificator", "virtualserver_hostbutton_tooltip", "virtualserver_hostbutton_url", "virtualserver_hostbutton_gfx_url", "virtualserver_name_phonetic", "virtualserver_icon_id", "virtualserver_hostbanner_mode", "virtualserver_channel_temp_delete_delay_default", "virtualserver_nickname?", "virtualserver_unique_identifier?", "virtualserver_default_music_group?", "virtualserver_default_channel_admin_group?", "virtualserver_weblist_enabled?", "virtualserver_country?", "virtualserver_capability_extensions?", "virtualserver_administrative_domain?", "client_nickname@initserver?", "client_version@initserver?", "client_platform@initserver?", "client_input_muted?", "client_output_muted?", "client_outputonly_muted?", "client_input_hardware?", "client_output_hardware?", "client_default_channel?", "client_default_channel_password?", "client_server_password?", "client_meta_data?", "client_version_sign@initserver?", "client_security_hash?", "client_key_offset?", "client_away?", "client_away_message?", "client_nickname_phonetic@initserver?", "client_default_token?", "client_badges?", "client_myteamspeak_id?", "client_integrations?", "client_active_integrations_info?", "client_myteamspeak_avatar?", "client_signed_badges?", "acn", "aclid", "pv", "client_talk_power", "client_needed_serverquery_view_power", "client_user_tag?"] },
+	{ name="PluginCommand",             notify="notifyplugincmd",                 attributes=["name", "data", "invokerid?", "invokername?", "invokeruid?"] },
+	{ name="ServerEdited",              notify="notifyserveredited",              attributes=["invokerid", "invokername", "invokeruid?", "reasonid", "virtualserver_name?", "virtualserver_nickname?", "virtualserver_codec_encryption_mode?", "virtualserver_default_server_group?", "virtualserver_default_channel_group?", "virtualserver_hostbanner_url?", "virtualserver_hostbanner_gfx_url?", "virtualserver_hostbanner_gfx_interval?", "virtualserver_priority_speaker_dimm_modificator?", "virtualserver_hostbutton_tooltip?", "virtualserver_hostbutton_url?", "virtualserver_hostbutton_gfx_url?", "virtualserver_name_phonetic?", "virtualserver_icon_id?", "virtualserver_hostbanner_mode?", "virtualserver_channel_temp_delete_delay_default?" ] },
+	{ name="ServerTempPasswordList",    notify="notifyservertemppasswordlist",    attributes=["nickname", "uid", "desc", "pw_clear", "start@tmppw", "end", "tcid", "tcpw"] },
+	{ name="ServerUpdated",             notify="notifyserverupdated",             attributes=["virtualserver_welcomemessage", "virtualserver_maxclients", "virtualserver_clientsonline", "virtualserver_channelsonline", "virtualserver_uptime", "virtualserver_hostmessage", "virtualserver_hostmessage_mode", "virtualserver_flag_password", "virtualserver_default_channel_admin_group", "virtualserver_max_download_total_bandwidth", "virtualserver_max_upload_total_bandwidth", "virtualserver_complain_autoban_count", "virtualserver_complain_autoban_time", "virtualserver_complain_remove_time", "virtualserver_min_clients_in_channel_before_forced_silence", "virtualserver_antiflood_points_tick_reduce", "virtualserver_antiflood_points_needed_command_block", "virtualserver_antiflood_points_needed_ip_block", "virtualserver_client_connections", "virtualserver_query_client_connections", "virtualserver_queryclientsonline", "virtualserver_download_quota", "virtualserver_upload_quota", "virtualserver_month_bytes_downloaded", "virtualserver_month_bytes_uploaded", "virtualserver_total_bytes_downloaded", "virtualserver_total_bytes_uploaded", "virtualserver_port", "virtualserver_autostart", "virtualserver_machine_id", "virtualserver_needed_identity_security_level", "virtualserver_log_client", "virtualserver_log_query", "virtualserver_log_channel", "virtualserver_log_permissions", "virtualserver_log_server", "virtualserver_log_filetransfer", "virtualserver_min_client_version", "virtualserver_reserved_slots", "virtualserver_total_packetloss_speech", "virtualserver_total_packetloss_keepalive", "virtualserver_total_packetloss_control", "virtualserver_total_packetloss_total", "virtualserver_total_ping", "virtualserver_weblist_enabled", "virtualserver_min_android_version", "virtualserver_min_ios_version", "virtualserver_antiflood_points_needed_plugin_block"] },
+	{ name="TokenUsed",                 notify="notifytokenused",                 attributes=["token", "tokencustomset", "token1", "token2", "clid", "cldbid", "cluid"] },
+]
+
+# Server to Client Notifications (Low)
+[[msg_group]]
+default = { s2c=true, c2s=false, response=false, low=true, np=false }
+msg = [
+	# Response to channelgetdescription
+	{ name="ChannelEditedLow",          notify="notifychanneledited",               attributes=["cid",  "reasonid", "channel_description?"] },
+	{ name="ClientPoke",                notify="notifyclientpoke",                  attributes=["invokerid", "invokername", "invokeruid?", "msg"] },
+]
+
+# Server to Client Responses
+[[msg_group]]
+default = { s2c=true, c2s=false, response=true, low=false, np=false }
+msg = [
+	# ChannelCreate
+	{ name="ChannelCreateResponse",       attributes=["cid"] },
+	# channelinfo
+	{ name="ChannelInfoResponse",       attributes=["pid", "channel_name", "channel_topic", "channel_description", "channel_password?", "channel_codec", "channel_codec_quality", "channel_maxclients", "channel_maxfamilyclients", "channel_order", "channel_flag_permanent", "channel_flag_semi_permanent", "channel_flag_default", "channel_flag_password", "channel_codec_latency_factor", "channel_codec_is_unencrypted", "channel_security_salt?", "channel_delete_delay", "channel_unique_identifier?", "channel_flag_maxclients_unlimited", "channel_flag_maxfamilyclients_unlimited", "channel_flag_maxfamilyclients_inherited", "channel_filepath", "channel_needed_talk_power", "channel_forced_silence", "channel_name_phonetic?", "channel_icon_id", "channel_banner_gfx_url?", "channel_banner_mode", "seconds_empty"] },
+	# channellist
+	{ name="ChannelListResponse",       attributes=["cid", "pid", "channel_order", "channel_name", "total_clients", "channel_needed_subscribe_power",
+		"channel_topic?", # -topic
+		"channel_flag_default?", # -flags
+		"channel_flag_password?", # -flags
+		"channel_flag_permanent?", # -flags
+		"channel_flag_semi_permanent?", # -flags
+		"channel_codec?", # -voice
+		"channel_codec_quality?", # -voice
+		"channel_needed_talk_power?", # -voice
+		"total_clients_family?", # -limits
+		"channel_maxclients?", # -limits
+		"channel_maxfamilyclients?", # -limits
+		"channel_icon_id?", # -icon
+		"seconds_empty?", # -secondsempty
+	] },
+	# channelfind
+	{ name="ChannelFind",               attributes=["cid", "channel_name"] },
+	# clientlist
+	{ name="ClientList",                attributes=["clid", "cid", "client_database_id", "client_nickname", "client_type",
+		"client_unique_identifier?", # -uid
+		"client_away?", # -away
+		"client_away_message?", # -away
+		"client_flag_talking?", # -voice
+		"client_input_muted?", # -voice
+		"client_output_muted?", # -voice
+		"client_input_hardware?", # -voice
+		"client_output_hardware?", # -voice
+		"client_talk_power?", # -voice
+		"client_is_talker?", # -voice
+		"client_is_priority_speaker?", # -voice
+		"client_is_recording?", # -voice
+		"client_is_channel_commander?", # -voice
+		"client_idle_time?", # -times
+		"client_created?", # -times
+		"client_lastconnected?", # -times
+		"client_servergroups?", # -groups
+		"client_channel_group_id?", # -groups
+		"client_channel_group_inherited_channel_id?", # -groups
+		"client_version?", # -info
+		"client_platform?", # -info
+		"client_country?", # -country
+		"connection_client_ip?", # -ip
+		"client_badges?", # - badges
+	] },
+	# clientdbinfo
+	{ name="ClientDbInfo",              attributes=["client_lastip", "clid", "client_unique_identifier", "cid", "client_database_id", "client_nickname", "client_type", "client_flag_avatar", "client_description", "client_icon_id", "client_created", "client_lastconnected", "client_totalconnections", "client_month_bytes_uploaded", "client_month_bytes_downloaded", "client_total_bytes_uploaded", "client_total_bytes_downloaded", "client_base64HashClientUID"] },
+	# clientinfo
+	{ name="ClientInfo",                attributes=["client_idle_time", "client_version", "client_version_sign", "client_platform", "client_default_channel", "client_security_hash", "client_login_name", "client_default_token", "connection_filetransfer_bandwidth_sent", "connection_filetransfer_bandwidth_received", "connection_packets_sent_total", "connection_packets_received_total", "connection_bytes_sent_total", "connection_bytes_received_total", "connection_bandwidth_sent_last_second_total", "connection_bandwidth_received_last_second_total", "connection_bandwidth_sent_last_minute_total", "connection_bandwidth_received_last_minute_total", "connection_connected_time", "connection_client_ip", "cid", "client_unique_identifier", "client_database_id", "client_nickname", "client_type", "client_input_muted", "client_output_muted", "client_outputonly_muted", "client_input_hardware", "client_output_hardware", "client_meta_data", "client_is_recording", "client_channel_group_id", "client_channel_group_inherited_channel_id", "client_servergroups", "client_away", "client_away_message", "client_talk_power", "client_talk_request", "client_talk_request_msg", "client_is_talker", "client_is_priority_speaker", "client_unread_messages", "client_nickname_phonetic", "client_needed_serverquery_view_power", "client_is_channel_commander", "client_country", "client_badges", "client_created", "client_lastconnected", "client_totalconnections", "client_month_bytes_uploaded", "client_month_bytes_downloaded", "client_total_bytes_uploaded", "client_total_bytes_downloaded", "client_base64HashClientUID", "client_flag_avatar", "client_description", "client_icon_id", "client_myteamspeak_id?", "client_integrations?"] },
+	# serverlist
+	{ name="ServerListResponse",        attributes=["virtualserver_id", "virtualserver_port", "virtualserver_status",
+		"virtualserver_clientsonline?", # not -short
+		"virtualserver_queryclientsonline?", # not -short
+		"virtualserver_maxclients?", # not -short
+		"virtualserver_uptime?", # not -short
+		"virtualserver_autostart?", # not -short
+		"virtualserver_machine_id?", # not -short
+		"virtualserver_name?", # not -short
+		"virtualserver_unique_identifier?", # -uid
+	] },
+	# servergroupadd
+	{ name="ServerGroupAddResponse",    attributes=["sgid"] },
+	# whoami
+	{ name="WhoAmI",                    attributes=["client_id", "client_channel_id", "client_nickname", "client_database_id", "client_login_name", "client_origin_server_id", "virtualserver_id", "virtualserver_unique_identifier", "virtualserver_port", "virtualserver_status", "client_unique_identifier"] },
+]
+
+# Server to Client Hybrid
+[[msg_group]]
+default = { s2c=true, c2s=false, response=true, low=false, np=false }
+msg = [
+	{ name="BanList",                   notify="notifybanlist",                     attributes=["banid", "ip", "name", "uid", "mytsid?", "lastnickname", "created", "duration@time", "invokercldbid", "invokername", "invokeruid?", "reason", "enforcements"] },
+	{ name="ChannelClientPermList",     notify="notifychannelclientpermlist",       attributes=["cid", "cldbid", "permid?", "permsid?", "permvalue", "permnegated", "permskip"] },
+	{ name="ChannelCreated",            notify="notifychannelcreated",              attributes=["cid", "invokerid", "invokername", "invokeruid?", "channel_order", "channel_name", "channel_topic?", "channel_flag_default?", "channel_flag_password?", "channel_flag_permanent?", "channel_flag_semi_permanent?", "channel_codec?", "channel_codec_quality?", "channel_needed_talk_power?", "channel_icon_id?", "channel_maxclients?", "channel_maxfamilyclients?", "channel_codec_latency_factor?", "channel_codec_is_unencrypted?", "channel_delete_delay?", "channel_unique_identifier?", "channel_flag_maxclients_unlimited?", "channel_flag_maxfamilyclients_unlimited?", "channel_flag_maxfamilyclients_inherited?", "channel_name_phonetic?", "channel_storage_quota?", "cpid"] },
+	{ name="ChannelDeleted",            notify="notifychanneldeleted",              attributes=["cid", "invokerid", "invokername", "invokeruid?"] },
+	# Has no invoker when we requested the description with: channelgetdescription cid=1
+	{ name="ChannelEdited",             notify="notifychanneledited",               attributes=["cid", "invokerid?", "invokername?", "invokeruid?", "reasonid", "channel_order?", "channel_name?", "channel_topic?", "channel_flag_default?", "channel_flag_password?", "channel_flag_permanent?", "channel_flag_semi_permanent?", "channel_codec?", "channel_codec_quality?", "channel_needed_talk_power?", "channel_icon_id?", "channel_maxclients?", "channel_maxfamilyclients?", "channel_codec_latency_factor?", "channel_codec_is_unencrypted?", "channel_delete_delay?", "channel_flag_maxclients_unlimited?", "channel_flag_maxfamilyclients_unlimited?", "channel_flag_maxfamilyclients_inherited?", "channel_name_phonetic?", "cpid?", "channel_description?"] },
+	{ name="ChannelGroupClientList",    notify="notifychannelgroupclientlist",      attributes=["cid", "cldbid", "cgid"] },
+	{ name="ChannelGroupList",          notify="notifychannelgrouplist",            attributes=["cgid", "name", "type@group", "iconid", "savedb", "sortid", "namemode", "n_modifyp", "n_member_addp", "n_member_removep?"] },
+	{ name="ChannelGroupPermList",      notify="notifychannelgrouppermlist",        attributes=["cgid", "permid?", "permsid?", "permvalue", "permnegated", "permskip"] },
+	{ name="ChannelPermList",           notify="notifychannelpermlist",             attributes=["cid", "permid", "permvalue", "permnegated", "permskip"] },
+	{ name="ClientDbFind",              notify="notifyclientdbfind",                attributes=["cldbid", "client_unique_identifier", "client_nickname", "client_lastconnected", "client_totalconnections"] },
+	{ name="ClientDbIdFromUid",         notify="notifyclientdbidfromuid",           attributes=["cluid", "cldbid"] },
+	{ name="ClientDbList",              notify="notifyclientdblist",                attributes=["cldbid", "client_unique_identifier", "client_nickname", "client_created", "client_lastconnected", "client_totalconnections", "client_description", "client_lastip"] },
+	{ name="ClientIds",                 notify="notifyclientids",                   attributes=["cluid", "clid", "name"] },
+	{ name="ClientNameFromDbId",        notify="notifyclientnamefromdbid",          attributes=["cluid", "cldbid", "name"] },
+	{ name="ClientNameFromUid",         notify="notifyclientnamefromuid",           attributes=["cluid", "cldbid", "name"] },
+	{ name="ClientUidFromClid",         notify="notifyclientuidfromclid",           attributes=["cluid", "clid", "nickname"] },
+	{ name="ClientPermList",            notify="notifyclientpermlist",              attributes=["cldbid", "permid?", "permsid?", "permvalue", "permnegated", "permskip"] },
+	{ name="ClientSetServerQueryLogin", notify="notifyclientserverqueryloginpassword", attributes=["client_login_password"] },
+	{ name="ComplainList",              notify="notifycomplainlist",                attributes=["tcldbid", "tname", "fcldbid", "fname", "message", "timestamp"] },
+	{ name="FileDownload",              notify="notifystartdownload",               attributes=["clientftfid", "serverftfid", "ftkey", "port", "size", "proto", "ip?"] },
+	{ name="FileInfo",                  notify="notifyfileinfo",                    attributes=["cid", "path", "name", "size", "datetime"] },
+	{ name="FileList",                  notify="notifyfilelist",                    attributes=["cid", "path", "name", "size", "datetime", "type@ft"] },
+	{ name="Filetransfer",              notify="notifyfiletransferlist",            attributes=["clid", "path", "name", "size", "sizedone", "clientftfid", "serverftfid", "sender", "status@ft", "current_speed", "average_speed", "runtime"] },
+	{ name="FileUpload",                notify="notifystartupload",                 attributes=["clientftfid", "serverftfid", "ftkey", "port", "seekpos", "proto", "ip?"] },
+	{ name="OfflineMessage",            notify="notifymessage",                     attributes=["msgid", "cluid", "subject", "message", "timestamp"] },
+	{ name="OfflineMessageList",        notify="notifymessagelist",                 attributes=["msgid", "cluid", "subject", "timestamp", "flag_read"] },
+	{ name="PermFind",                  notify="notifypermfind",                    attributes=["t", "id1", "id2", "p"] },
+	{ name="PermList",                  notify="notifypermissionlist",              attributes=["group_id_end", "permid?", "permname?", "permdesc?"] }, # Note: very weird ordering
+	{ name="PermOverview",              notify="notifypermoverview",                attributes=["cldbid", "cid", "t", "id1", "id2", "p", "v", "n", "s"] },
+	{ name="ServerConnectionInfo",      notify="notifyserverconnectioninfo",        attributes=["connection_filetransfer_bandwidth_sent", "connection_filetransfer_bandwidth_received", "connection_filetransfer_bytes_sent_total", "connection_filetransfer_bytes_received_total", "connection_packets_sent_total", "connection_bytes_sent_total", "connection_packets_received_total", "connection_bytes_received_total", "connection_bandwidth_sent_last_second_total", "connection_bandwidth_sent_last_minute_total", "connection_bandwidth_received_last_second_total", "connection_bandwidth_received_last_minute_total", "connection_connected_time@server", "connection_packetloss_total", "connection_ping"] },
+	{ name="ServerGroupClientList",     notify="notifyservergroupclientlist",       attributes=["sgid", "cldbid", "client_nickname?", "client_unique_identifier?"] },
+	{ name="ServerGroupList",           notify="notifyservergrouplist",             attributes=["sgid", "name", "type@group", "iconid", "savedb", "sortid", "namemode", "n_modifyp", "n_member_addp", "n_member_removep?"] },
+	{ name="ServerGroupPermList",       notify="notifyservergrouppermlist",         attributes=["sgid", "permid?", "permsid?", "permvalue", "permnegated", "permskip"] },
+	{ name="ServerGroupsByClientId",    notify="notifyservergroupsbyclientid",      attributes=["name", "sgid", "cldbid"] },
+	{ name="ServerLog",                 notify="notifyserverlog",                   attributes=["last_pos", "file_size", "log"] },
+	{ name="TextMessage",               notify="notifytextmessage",                 attributes=["targetmode@msg", "msg", "target@msg?", "invokerid", "invokername", "invokeruid?", "timestamp?"] },
+	{ name="TokenAdd",                  notify="notifytokenadd",                    attributes=["token"] },
+	{ name="TokenList",                 notify="notifytokenlist",                   attributes=["token", "token_type", "token_id1", "token_id2", "token_created", "token_description"] },
+]
+
+# Client to Server Notifications
+[[msg_group]]
+default = { s2c=false, c2s=true, response=false, low=false, np=false }
+msg = [
+	{ name="ClientInit",                    notify="clientinit",                    attributes=["client_nickname", "client_version", "client_platform", "client_input_hardware", "client_output_hardware", "client_input_muted?", "client_output_muted?", "client_away?", "client_away_message?", "client_default_channel", "client_default_channel_password", "client_server_password", "client_meta_data", "client_version_sign", "client_key_offset", "client_nickname_phonetic", "client_default_token", "hwid", "client_badges?", "client_security_hash?", "client_myteamspeak_id?", "client_integrations?", "client_active_integrations_info?", "client_myteamspeak_avatar?", "client_signed_badges?" ] },
+	{ name="ClientInitIv",                  notify="clientinitiv",                  attributes=["alpha", "omega", "ot?", "ip"] },
+	{ name="PluginCommandRequest",          notify="plugincmd",                     attributes=["name", "data", "targetmode@plugin", "target@plugin?"] },
+	# banadd ip=42\\.42\\.42\\.42 name=test uid=b+P0CqXms5I0C+A66HZ4Sbu\/PNw= time=5 banreason=test
+	# -> void
+	{ name="BanAdd",                        notify="banadd",                        attributes=["ip?", "name?", "uid?", "time?", "banreason?"] },
+	# banclient uid=Np\/KHoMinRjzz54VORp6Ks\/3b3c= time=1 banreason=this\sperson
+	# -> void
+	{ name="BanClient",                     notify="banclient",                     attributes=["clid", "time?", "banreason?"] },
+	# bandel banid=4
+	# bandel banid=1 return_code=1:21 return_code=__1:21_1:21
+	# error id=0 msg=ok return_code=1:21
+	# -> void
+	{ name="BanDel",                        notify="bandel",                        attributes=["banid"] },
+	# bandelall
+	# -> void
+	{ name="BanDelAll",                     notify="bandelall",                     attributes=[] },
+	# banlist return_code=1:5
+	# -> {BanList} notifybanlist banid=3 ip=42\\.42\\.42\\.42 name=test uid=b+P0CqXms5I0C+A66HZ4Sbu\/PNw= lastnickname=AudioBud created=1538835372 duration=5 invokername=Splamy invokercldbid=2 invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= reason=test enforcements=0
+	{ name="BanListRequest",                notify="banlist",                       attributes=[] },
+	# [NOT FULL]
+	{ name="BindingList",                   notify="bindinglist",                   attributes=["subsystem?"] },
+	# channeladdperm cid=1 permid=78 permvalue=75
+	# -> void
+	{ name="ChannelAddPerm",                notify="channeladdperm",                attributes=["cid", "permid?", "permsid?", "permvalue"] },
+	# channelclientaddperm cid=1 cldbid=2 permid=183 permvalue=1
+	# -> void
+	{ name="ChannelClientAddPerm",          notify="channelclientaddperm",          attributes=["cid", "cldbid", "permid?", "permsid?", "permvalue"] },
+	# channelclientdelperm cid=1 cldbid=2 permid=185
+	# -> void
+	{ name="ChannelClientDelPerm",          notify="channelclientdelperm",          attributes=["cid", "cldbid", "permid?", "permsid?"] },
+	# channelclientpermlist cid=1 cldbid=2
+	# -> {ChannelClientPermList} notifychannelclientpermlist cid=1 cldbid=2 permid=183 permvalue=1 permnegated=0 permskip=0
+	{ name="ChannelClientPermListRequest",  notify="channelclientpermlist",         attributes=["cid", "cldbid"] }, # -permsid
+	# channelcreate  cpid=0 channel_name=testcreate channel_codec_quality=6 channel_flag_permanent=1 channel_codec_is_unencrypted=1 channel_flag_maxfamilyclients_unlimited=0 channel_flag_maxfamilyclients_inherited=1
+	# -> {ChannelCreated} notifychannelcreated cid=2 cpid=0 channel_name=testcreate channel_codec_quality=6 channel_order=1 channel_flag_permanent=1 channel_codec_is_unencrypted=1 channel_flag_maxfamilyclients_unlimited=0 channel_flag_maxfamilyclients_inherited=1 invokerid=3 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	{ name="ChannelCreate",                 notify="channelcreate",                 attributes=["cpid?", "channel_name", "channel_topic?", "channel_description?", "channel_password?", "channel_codec?", "channel_codec_quality?", "channel_maxclients?", "channel_maxfamilyclients?", "channel_order?", "channel_flag_password?", "channel_codec_is_unencrypted?", "channel_delete_delay?", "channel_flag_maxclients_unlimited?", "channel_flag_maxfamilyclients_unlimited?", "channel_flag_maxfamilyclients_inherited?", "channel_name_phonetic?", "channel_flag_permanent?", "channel_flag_semi_permanent?", "channel_flag_default?"] },
+	# channeldelete cid=2
+	# -> {ChannelDeleted} notifychanneldeleted invokerid=3 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	{ name="ChannelDelete",                 notify="channeldelete",                 attributes=["cid", "force"] },
+	# channeldelperm cid=1 permid=78
+	# -> void
+	{ name="ChannelDelPerm",                notify="channeldelperm",                attributes=["cid", "permid?", "permsid?"] },
+	# channelgetdescription cid=1
+	# -> {ChannelEditedLow} notifychanneledited cid=1 channel_description=blub
+	{ name="ChannelDescriptionRequest",     notify="channelgetdescription",         attributes=["cid"] },
+	# channeledit cid=2 channel_codec=5
+	# -> void
+	{ name="ChannelEdit",                   notify="channeledit",                   attributes=["cid", "channel_order?", "channel_name?", "channel_topic?", "channel_flag_default?", "channel_flag_password?", "channel_password?", "channel_flag_permanent?", "channel_flag_semi_permanent?", "channel_codec?", "channel_codec_quality?", "channel_needed_talk_power?", "channel_maxclients?", "channel_maxfamilyclients?", "channel_codec_latency_factor?", "channel_codec_is_unencrypted?", "channel_delete_delay?", "channel_flag_maxclients_unlimited?", "channel_flag_maxfamilyclients_unlimited?", "channel_flag_maxfamilyclients_inherited?", "channel_name_phonetic?", "channel_description?"] },
+	# channelfind pattern=Def
+	# -> {ChannelFind} cid=1 channel_name=Default\sChannel|cid=3 channel_name=Default
+	{ name="ChannelFindRequest",            notify="channelfind",                   attributes=["pattern"] },
+	# channelgroupadd name=TestGroup type=1
+	# -> {ChannelGroupList} notifychannelgrouplist cgid=1 name=Channel\sAdmin type=0 iconid=100 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=50 n_member_removep=50|cgid=2 name=Operator type=0 iconid=200 savedb=1 sortid=0 namemode=0 n_modifyp=75 n_member_addp=30 n_member_removep=30|...
+	{ name="ChannelGroupAdd",               notify="channelgroupadd",               attributes=["name", "type@group?"] },
+	# channelgroupaddperm cgid=9 permid=146 permvalue=1
+	# -> void
+	{ name="ChannelGroupAddPerm",           notify="channelgroupaddperm",           attributes=["cgid", "permid?", "permsid?", "permvalue"] },
+	# channelgroupclientlist cid=1 cgid=9 cldbid=0
+	# -> {ChannelGroupClientList} notifychannelgroupclientlist cid=1 cldbid=2 cgid=9
+	{ name="ChannelGroupClientListRequest", notify="channelgroupclientlist",        attributes=["cid?", "cldbid?", "cgid?"] },
+	# channelgroupcopy name=TestGroup2\s(Copy) scgid=9 tcgid=0
+	# -> {ChannelGroupList} notifychannelgrouplist ...
+	{ name="ChannelGroupCopy",              notify="channelgroupcopy",              attributes=["scgid", "tcgid", "name", "type@group"] },
+	# channelgroupdel cgid=10 force=0
+	# -> {ChannelGroupList} notifychannelgrouplist ...
+	{ name="ChannelGroupDel",               notify="channelgroupdel",               attributes=["cgid", "force"] },
+	# channelgroupdelperm cgid=10 permid=146
+	# -> void
+	{ name="ChannelGroupDelPerm",           notify="channelgroupdelperm",           attributes=["cgid", "permid?", "permsid?"] },
+	# channelgrouplist
+	# -> {ChannelGroupList} notifychannelgrouplist ...
+	{ name="ChannelGroupListRequest",       notify="channelgrouplist",              attributes=[] },
+	# channelgrouppermlist cgid=9
+	# -> {ChannelGroupPermList} notifychannelgrouppermlist cgid=9 permid=164 permvalue=75 permnegated=0 permskip=0|permid=166 permvalue=75 permnegated=0 permskip=0|permid=168 permvalue=75 permnegated=0 permskip=0
+	{ name="ChannelGroupPermListRequest",   notify="channelgrouppermlist",          attributes=["cgid"] }, # -permsid
+	# channelgrouprename cgid=9 name=TestGroup2
+	# -> {ChannelGroupList} notifychannelgrouplist ...
+	{ name="ChannelGroupRename",            notify="channelgrouprename",            attributes=["cgid", "name"] },
+	# channelinfo cid=3
+	# -> {ChannelInfoResponse} pid=0 channel_name=Default channel_topic channel_description channel_password channel_codec=4 channel_codec_quality=6 channel_maxclients=-1 channel_maxfamilyclients=-1 channel_order=1 channel_flag_permanent=0 channel_flag_semi_permanent=0 channel_flag_default=0 channel_flag_password=0 channel_codec_latency_factor=1 channel_codec_is_unencrypted=1 channel_security_salt channel_delete_delay=0 channel_flag_maxclients_unlimited=1 channel_flag_maxfamilyclients_unlimited=0 channel_flag_maxfamilyclients_inherited=1 channel_filepath=files\\virtualserver_1\\channel_3 channel_needed_talk_power=0 channel_forced_silence=0 channel_name_phonetic channel_icon_id=0 channel_flag_private=0 seconds_empty=-1
+	{ name="ChannelInfoRequest",            notify="channelinfo",                   attributes=["cid"] },
+	# channellist
+	# -> cid=1 pid=0 channel_order=0 channel_name=Default\sChannel total_clients=0 channel_needed_subscribe_power=0|cid=3 pid=0 channel_order=1 channel_name=Default total_clients=1 channel_needed_subscribe_power=0
+	{ name="ChannelListRequest",            notify="channellist",                   attributes=[] }, # [-topic] [-flags] [-voice] [-limits] [-icon] [-secondsempty]
+	# channelmove cid=3 cpid=1
+	# -> {ChannelMoved} notifychannelmoved cid=3 cpid=1 order=0 reasonid=1 invokerid=3 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	{ name="ChannelMove",                   notify="channelmove",                   attributes=["cid", "cpid", "order?"] },
+	# channelpermlist cid=3
+	# -> {ChannelPermList} notifychannelpermlist cid=3 permid=82 permvalue=75 permnegated=0 permskip=0|permid=132 permvalue=75 permnegated=0 permskip=0
+	{ name="ChannelPermListRequest",        notify="channelpermlist",               attributes=["cid"] }, # -permsid
+	# channelsubscribe cid=8
+	# -> {ChannelSubscribed} notifychannelsubscribed cid=8 es=31020
+	{ name="ChannelSubscribe",              notify="channelsubscribe",              attributes=["cid"] },
+	# channelsubscribeall
+	# -> {ChannelSubscribed} notifychannelsubscribed cid=5 es=30852|cid=6 es=30852|cid=8 es=30852
+	{ name="ChannelSubscribeAll",           notify="channelsubscribeall",           attributes=[] },
+	# channelunsubscribe cid=8
+	# -> {ChannelUnsubscribed} notifychannelunsubscribed cid=8
+	{ name="ChannelUnsubscribe",            notify="channelunsubscribe",            attributes=["cid"] },
+	# channelunsubscribeall
+	# -> {ChannelUnsubscribed} notifychannelunsubscribed cid=5|cid=6|cid=8
+	{ name="ChannelUnsubscribeAll",         notify="channelunsubscribeall",         attributes=[] },
+	# clientaddperm cldbid=2 permid=177 permvalue=75 permskip=0
+	# -> {ClientNeededPermissions} notifyclientneededpermissions permid=177 permvalue=75
+	{ name="ClientAddPerm",                 notify="clientaddperm",                 attributes=["cldbid", "permid?", "permsid?", "permvalue", "permskip"] },
+	# clientchatclosed clid=3 cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	# -> void
+	{ name="ClientChatClose",               notify="clientchatclosed",              attributes=["clid", "cluid"] },
+	# getconnectioninfo clid=1
+	# -> notifyconnectioninfo clid=1 connection_client_ip=[::1] connection_client_port=58283 connection_client2server_packetloss_speech=0.0000 connection_client2server_packetloss_keepalive=0.0000 connection_client2server_packetloss_control=0.0000 connection_client2server_packetloss_total=0.0000 connection_idle_time=195951
+	{ name="ClientConnectionInfoRequest",   notify="getconnectioninfo",             attributes=["clid"] },
+	# clientdbdelete cldbid=10
+	# -> void
+	{ name="ClientDbDelete",                notify="clientdbdelete",                attributes=["cldbid"] },
+	# TODO !!!
+	{ name="ClientDbEdit",                  notify="clientdbedit",                  attributes=["cldbid"] }, # TODO PROPERTIES !
+	# clientdbfind pattern=%spl% -details
+	# clientdbfind pattern=%myuid% -uid -details return_code=1:z
+	# -> {ClientDbFind} notifyclientdbfind cldbid=2 client_unique_identifier=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= client_nickname=Splamy client_lastconnected=1539260951 client_totalconnections=20
+	{ name="ClientDbFindRequest",           notify="clientdbfind",                  attributes=["pattern"] }, # -uid, -details || the -details is undocumentd but works in both query/full
+	# clientdbinfo cldbid=2
+	# -> client_unique_identifier=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= client_nickname=Splamy client_database_id=2 client_created=1537603744 client_lastconnected=1539260951 client_totalconnections=20 client_flag_avatar client_description client_month_bytes_uploaded=0 client_month_bytes_downloaded=131916 client_total_bytes_uploaded=0 client_total_bytes_downloaded=144480 client_base64HashClientUID=lianbeoonoapahbhejofdcohgkllaobnaihipong client_lastip=::1
+	{ name="ClientDbInfoRequest",           notify="clientdbinfo",                  attributes=["cldbid"] },
+	# clientdblist start=0 duration=10
+	# -> {ClientDbList} notifyclientdblist cldbid=2 client_unique_identifier=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= client_nickname=Splamy client_created=1537603744 client_lastconnected=1539260951 client_totalconnections=20 client_description client_lastip=::1 | ...
+	{ name="ClientDbListRequest",           notify="clientdblist",                  attributes=["start@list?", "duration@list?"] }, # -count
+	# clientdelperm cldbid=2 permid=177
+	# -> {ClientNeededPermissions} notifyclientneededpermissions permid=177
+	{ name="ClientDelPerm",                 notify="clientdelperm",                 attributes=["cldbid", "permid?", "permsid?"] },
+	# clientedit clid=2 client_description=desc client_is_talker=1
+	{ name="ClientEdit",                    notify="clientedit",                    attributes=["clid", "client_description?", "client_is_talker?"] },
+	# clientfind pattern=Spla
+	# -> clid=1 client_nickname=Splamy
+	{ name="ClientFindRequest",             notify="clientfind",                    attributes=["pattern"] },
+	# clientgetdbidfromuid cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	# -> {ClientDbIdFromUid} notifyclientdbidfromuid cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= cldbid=2
+	{ name="ClientDbIdFromUidRequest",      notify="clientgetdbidfromuid",          attributes=["cluid"] },
+	# clientgetids cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	# -> {ClientIds} notifyclientids cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= clid=1
+	{ name="ClientIdsRequest",              notify="clientgetids",                  attributes=["cluid"] },
+	# clientgetnamefromdbid cldbid=2
+	# -> {ClientNameFromDbId} notifyclientnamefromdbid cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= cldbid=2 name=Splamy
+	{ name="ClientNameFromDbIdRequest",     notify="clientgetnamefromdbid",         attributes=["cldbid"] },
+	# clientgetnamefromuid cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	# -> {ClientNameFromUid} notifyclientnamefromuid cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= cldbid=2 name=Splamy
+	{ name="ClientNameFromUidRequest",      notify="clientgetnamefromuid",          attributes=["cluid"] },
+	# clientgetuidfromclid clid=1
+	# -> {ClientUidFromClid} notifyclientuidfromclid clid=1 cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= nickname=Splamy
+	{ name="ClientUidFromClidRequest",      notify="clientgetuidfromclid",          attributes=["clid"] },
+	# clientgetvariables clid=2
+	# -> {ClientUpdated} notifyclientupdated clid=2 client_version=3.2.3\s[Build:\s1538467030] client_platform=Windows client_login_name client_created=1538835269 client_lastconnected=1539267929 client_totalconnections=3 client_month_bytes_uploaded=0 client_month_bytes_downloaded=0 client_total_bytes_uploaded=0 client_total_bytes_downloaded=0
+	{ name="ClientVariablesRequest",        notify="clientgetvariables",            attributes=["clid"] },
+	# clientinfo clid=1
+	# -> {ClientInfo?} cid=4 client_idle_time=432921 client_unique_identifier=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= client_nickname=Splamy client_version=3.2.3\s[Build:\s1538467030] client_platform=Windows client_input_muted=0 client_output_muted=0 client_outputonly_muted=0 client_input_hardware=0 client_output_hardware=1 client_default_channel=\/3 client_meta_data client_is_recording=0 client_version_sign=dZ1i\/CsCaAh4F7Pi2F\/FfaBpdTmUuNVsAIRnqm86FUR3HhwBRn+xlmbwRF8gObgFMuwFMCLmawncFWplSILKAQ== client_security_hash client_login_name client_database_id=2 client_channel_group_id=5 client_servergroups=6 client_created=1537603744 client_lastconnected=1539260951 client_totalconnections=20 client_away=0 client_away_message client_type=0 client_flag_avatar client_talk_power=75 client_talk_request=0 client_talk_request_msg client_description client_is_talker=0 client_month_bytes_uploaded=0 client_month_bytes_downloaded=131916 client_total_bytes_uploaded=0 client_total_bytes_downloaded=144480 client_is_priority_speaker=0 client_unread_messages=0 client_nickname_phonetic client_needed_serverquery_view_power=75 client_default_token client_icon_id=0 client_is_channel_commander=0 client_country client_channel_group_inherited_channel_id=4 client_badges=overwolf=0 client_myteamspeak_id client_integrations client_base64HashClientUID=lianbeoonoapahbhejofdcohgkllaobnaihipong connection_filetransfer_bandwidth_sent=0 connection_filetransfer_bandwidth_received=0 connection_packets_sent_total=14972 connection_bytes_sent_total=634932 connection_packets_received_total=19657 connection_bytes_received_total=1176471 connection_bandwidth_sent_last_second_total=81 connection_bandwidth_sent_last_minute_total=81 connection_bandwidth_received_last_second_total=83 connection_bandwidth_received_last_minute_total=87 connection_connected_time=7411717 connection_client_ip=[::1]
+	{ name="ClientInfoRequest",             notify="clientinfo",                    attributes=["clid"] },
+	# clientkick reasonid=4 reasonmsg=yo clid=3
+	# -> {ClientMoved} notifyclientmoved ctid=1 reasonid=4 invokerid=1 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= reasonmsg=yo clid=3
+	{ name="ClientKick",                    notify="clientkick",                    attributes=["clid", "reasonid", "reasonmsg?"] },
+	# clientlist
+	# clid=1 cid=4 client_database_id=2 client_nickname=Splamy client_type=0 | ...
+	{ name="ClientListRequest",             notify="clientlist",                    attributes=[] }, # [-uid] [-away] [-voice] [-times] [-groups] [-info] [-country] [-ip] [-badges]
+	# clientmove cid=4 cpw clid=2
+	# -> {ClientMoved} notifyclientmoved ctid=4 reasonid=1 invokerid=1 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= clid=3
+	{ name="ClientMove",                    notify="clientmove",                    attributes=["clid", "cid", "cpw?"] },
+	# clientpermlist cldbid=2
+	# -> {ClientPermList} notifyclientpermlist cldbid=2 permid=177 permvalue=75 permnegated=0 permskip=0
+	{ name="ClientPermListRequest",         notify="clientpermlist",                attributes=["cldbid"] }, # -permsid
+	# clientpoke clid=3 msg=hi
+	# -> void
+	{ name="ClientPokeRequest",             notify="clientpoke",                    attributes=["clid", "msg"] },
+	# clientsetserverquerylogin cldbid=2 client_login_name=hax client_login_password
+	# -> {ClientSetServerQueryLogin} notifyclientserverqueryloginpassword client_login_password=qm2niw4m
+	{ name="ClientSetServerQueryLoginRequest", notify="clientsetserverquerylogin",  attributes=["client_login_name", "client_login_password?", "cldbid?"] }, # 'client_login_password' is always ignored, 'cldbid' only exists for full client(?)
+	# clientupdate client_nickname=Seebi1 client_input_muted=1 client_away=1 client_away_message=AFK return_code=__1_
+	{ name="ClientUpdate",                  notify="clientupdate",                  attributes=["client_nickname?", "client_input_muted?", "client_output_muted?", "client_away?", "client_away_message?", "client_input_hardware?", "client_output_hardware?", "client_is_channel_commander?", "client_flag_avatar?", "client_nickname_phonetic?", "client_talk_request@clientupdate?", "client_talk_request_msg?", "client_is_recording?", "client_badges?"] },
+	# complainadd tcldbid=7 message=annoying
+	# -> void
+	{ name="ComplainAdd",                   notify="complainadd",                   attributes=["tcldbid", "message"] },
+	# complaindel tcldbid=7 fcldbid=2
+	# -> void
+	{ name="ComplainDel",                   notify="complaindel",                   attributes=["tcldbid", "fcldbid"] },
+	# complaindelall tcldbid=7
+	# -> void
+	{ name="ComplainDelAll",                notify="complaindelall",                attributes=["tcldbid"] },
+	# complainlist tcldbid=0
+	# -> {ComplainList} notifycomplainlist tcldbid=7 tname=Test01 fcldbid=2 fname=Splamy message=annoying timestamp=1539269750
+	{ name="ComplainListRequest",           notify="complainlist",                  attributes=["tcldbid?"] },
+	# customdelete ident=s cldbid=2
+	# -> void
+	{ name="CustomDelete",                  notify="customdelete",                  attributes=["cldbid", "ident"] },
+	# custominfo cldbid=2
+	# cldbid=2 ident=s value=1234
+	{ name="CustomInfoRequest",             notify="custominfo",                    attributes=["cldbid"] },
+	# customsearch ident=s pattern=%1%
+	# -> cldbid=2 ident=s value=1234
+	{ name="CustomSearch",                  notify="customsearch",                  attributes=["ident", "pattern"] },
+	# customset cldbid=2 ident=s value=1234
+	# -> void
+	{ name="CustomSet",                     notify="customset",                     attributes=["cldbid", "ident", "value"] },
+	# ftcreatedir cid=4 cpw dirname=\/test
+	# -> void
+	{ name="CreateDirectory",               notify="ftcreatedir",                   attributes=["cid", "cpw", "dirname"] },
+	# ftdeletefile cid=4 cpw name=\/Doxyfile2
+	# -> void
+	{ name="DeleteFile",                    notify="ftdeletefile",                  attributes=["cid", "cpw", "name"] },
+	# ftgetfileinfo cid=7 name=\/Egg.ogg cpw
+	# -> {FileInfo} notifyfileinfo cid=7 name=\/Egg.ogg size=6009201 datetime=1523479202
+	{ name="FileInfoRequest",               notify="ftgetfileinfo",                 attributes=["cid", "cpw", "name"] },
+	# ftgetfilelist cid=4 cpw path=\/
+	# -> {FileList} notifyfilelist cid=4 path=\/ return_code=1:15 name=Doxyfile size=11984 datetime=1539276009 type=1
+	# -> {FileListFinished} notifyfilelistfinished cid=4 path=\/
+	{ name="FileListRequest",               notify="ftgetfilelist",                 attributes=["cid", "cpw", "path"] },
+	# ftinitdownload clientftfid=4096 name=\/Doxyfile2 cid=4 cpw seekpos=0 proto=1
+	# -> {FileDownload} notifystartdownload clientftfid=4096 serverftfid=1 ftkey=example port=30033 size=11984 proto=1
+	{ name="InitDownload",                  notify="ftinitdownload",                attributes=["clientftfid", "name", "cid", "cpw", "seekpos", "proto"] },
+	# ftinitupload clientftfid=4096 name=\/Doxyfile size=11984 cid=4 cpw overwrite=0 resume=0 proto=1
+	# -> {FileUpload} notifystartupload clientftfid=4096 serverftfid=1 ftkey=example port=30033 seekpos=0 proto=1
+	{ name="InitUpload",                    notify="ftinitupload",                  attributes=["clientftfid", "name", "cid", "cpw", "size", "overwrite", "resume", "proto"] },
+	# ftlist
+	# -> {Filetransfer} notifyfiletransferlist clid=1 path=files\\virtualserver_1\\channel_4 name=Win10_1709_German_x64_Pro.iso size=3825467392 sizedone=1324744704 clientftfid=4096 serverftfid=1 sender=0 status=1 current_speed=101380912.0000 average_speed=98684800.0000 runtime=13
+	{ name="ListFiletransfers",             notify="ftlist",                        attributes=[] },
+	# ftrenamefile cid=4 cpw tcid=4 tcpw oldname=\/Doxyfile newname=\/Doxyfile2
+	# -> void
+	{ name="RenameFile",                    notify="ftrenamefile",                  attributes=["cid", "cpw", "tcid?", "tcpw?", "oldname", "newname"] },
+	# ftstop serverftfid=1 clientftfid=4096 delete=1
+	# -> {FiletransferStatus} notifystatusfiletransfer clientftfid=4096 status=2066 msg=file\stransfer\scanceled size=1736753152
+	{ name="StopFiletransfer",              notify="ftstop",                        attributes=["serverftfid", "delete"] },
+	# gm msg=test
+	# -> {TextMessage} notifytextmessage targetmode=3 msg=test invokerid=0 invokername=Server
+	{ name="GlobalMessage",                 notify="gm",                            attributes=["msg"] },
+	# hostinfo
+	# -> instance_uptime=2654 host_timestamp_utc=1539341335 virtualservers_running_total=1 virtualservers_total_maxclients=32 virtualservers_total_clients_online=1 virtualservers_total_channels_online=1 connection_filetransfer_bandwidth_sent=0 connection_filetransfer_bandwidth_received=0 connection_filetransfer_bytes_sent_total=0 connection_filetransfer_bytes_received_total=0 connection_packets_sent_total=3753 connection_bytes_sent_total=188803 connection_packets_received_total=3755 connection_bytes_received_total=167844 connection_bandwidth_sent_last_second_total=81 connection_bandwidth_sent_last_minute_total=81 connection_bandwidth_received_last_second_total=83 connection_bandwidth_received_last_minute_total=87
+	{ name="HostInfoRequest",               notify="hostinfo",                      attributes=[] },
+	# TODO !!!
+	{ name="InstanceEdit",                  notify="instanceedit",                  attributes=[] }, # TODO PROPERTIES !
+	# instanceinfo
+	# -> serverinstance_database_version=29 serverinstance_filetransfer_port=30033 serverinstance_max_download_total_bandwidth=18446744073709551615 serverinstance_max_upload_total_bandwidth=18446744073709551615 serverinstance_guest_serverquery_group=1 serverinstance_serverquery_flood_commands=10 serverinstance_serverquery_flood_time=3 serverinstance_serverquery_ban_time=600 serverinstance_template_serveradmin_group=3 serverinstance_template_serverdefault_group=5 serverinstance_template_channeladmin_group=1 serverinstance_template_channeldefault_group=4 serverinstance_permissions_version=21 serverinstance_pending_connections_per_ip=0
+	{ name="InstanceInfo",                  notify="instanceinfo",                  attributes=[] },
+	# logadd loglevel=1 logmsg=test
+	# -> void
+	{ name="LogAdd",                        notify="logadd",                        attributes=["loglevel", "logmsg"] },
+	# login $
+	# -> void
+	{ name="Login",                         notify="login",                         attributes=["client_login_name", "client_login_password"] },
+	# logout
+	# -> void
+	{ name="Logout",                        notify="logout",                        attributes=[] },
+	# logview lines=100 begin_pos=0 reverse=1 instance=0
+	# -> {ServerLog} notifyserverlog last_pos=0 file_size=9148 l=2018-10-12\s10:52:30.795253\pERROR\s\s\s\pCustom\s\s\s\s\s\s\s\s\p1\s\s\ptest|l=2018-10-12\s10:48:55.130491\pINFO\s\s\s\s\pVirtualServerBase\p1\s\s\pquery\sclient\sdisconnected\s'serveradmin\sfrom\s127.0.0.1:51093'(id:1)\sreason\s'reasonmsg=connection\slost'| ...
+	{ name="LogView",                       notify="logview",                       attributes=["lines?", "reverse?", "instance?", "begin_pos?"] },
+	# messageadd cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= subject=hrad message=ms
+	# -> void
+	{ name="OfflineMessageAdd",             notify="messageadd",                    attributes=["cluid", "subject", "message"] },
+	# messagedel msgid=1
+	# -> {ClientUpdated} notifyclientupdated clid=4 client_unread_messages=0
+	{ name="OfflineMessageDel",             notify="messagedel",                    attributes=["msgid"] },
+	# messageget msgid=1
+	# -> {OfflineMessage} notifymessage msgid=1 cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= subject=hrad message=ms timestamp=1539341886
+	{ name="OfflineMessageGet",             notify="messageget",                    attributes=["msgid"] },
+	# messagelist
+	# -> {OfflineMessageList} notifymessagelist msgid=1 cluid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= subject=hrad timestamp=1539341886 flag_read=0
+	{ name="OfflineMessageListRequest",     notify="messagelist",                   attributes=[] },
+	# messageupdateflag msgid=1 flag=1
+	# -> {ClientUpdated} notifyclientupdated clid=4 client_unread_messages=0
+	{ name="OfflineMessageUpdateFlag",      notify="messageupdateflag",             attributes=["msgid", "flag"] },
+	# permfind permid=1
+	# -> {PermFind} notifypermfind t=0 id1=6 id2=0 p=1
+	{ name="PermFindRequest",               notify="permfind",                      attributes=["permid?", "permsid?"] },
+	# permget permid=1
+	# -> permsid=b_serverinstance_help_view permid=1 permvalue=1
+	{ name="PermRequest",                   notify="permget",                       attributes=["permid"] },
+	# permidgetbyname permsid=b_serverinstance_permission_list
+	# -> permsid=b_serverinstance_permission_list permid=6
+	{ name="PermIdByNameRequest",           notify="permidgetbyname",               attributes=["permsid"] },
+	# permissionlist
+	# -> {PermList} notifypermissionlist group_id_end=0|group_id_end=7|group_id_end=13|group_id_end=18|group_id_end=21|group_id_end=21|group_id_end=33|group_id_end=47|group_id_end=77|group_id_end=82|group_id_end=83|group_id_end=106|group_id_end=126|group_id_end=132|group_id_end=143|group_id_end=151|group_id_end=160|group_id_end=162|group_id_end=170|group_id_end=172|group_id_end=190|group_id_end=197|group_id_end=215|group_id_end=227|group_id_end=232|group_id_end=248|permname=b_serverinstance_help_view permdesc=Retrieve\sinformation\sabout\sServerQuery\scommands|permname=b_serverinstance_version_view permdesc=Retrieve\sglobal\sserver\sversion\s(including\splatform\sand\sbuild\snumber)|permname=b_serverinstance_info_view permdesc=Retrieve\sglobal\sserver\sinformation|permname=b_serverinstance_virtualserver_list permdesc=List\svirtual\sservers\sstored\sin\sthe\sdatabase|...
+	{ name="PermListRequest",               notify="permissionlist",                attributes=[] },
+	# permoverview cid=1 cldbid=2 permid=1
+	# -> {PermOverview} notifypermoverview cldbid=2 cid=1 t=0 id1=6 id2=0 p=1 v=1 n=0 s=0
+	{ name="PermOverviewRequest",           notify="permoverview",                  attributes=["cid", "cldbid", "permid?", "permsid?"] },
+	# TODO
+	{ name="PermReset",                     notify="permreset",                     attributes=[] },
+	# {TokenAddRequest}
+	# -> (same)
+	{ name="PrivilegeKeyAddRequest",        notify="privilegekeyadd",               attributes=["tokentype", "tokenid1", "tokenid2", "tokendescription?", "tokencustomset?"] },
+	# {TokenDelete}
+	# -> (same)
+	{ name="PrivilegeKeyDelete",            notify="privilegekeydelete",            attributes=["token"] },
+	# {TokenListRequest}
+	# -> (same)
+	{ name="PrivilegeKeyListRequest",       notify="privilegekeylist",              attributes=[] },
+	# {TokenUse}
+	# -> (same)
+	{ name="PrivilegeKeyUse",               notify="privilegekeyuse",               attributes=["token"] },
+	# quit $
+	# -> void
+	{ name="Quit",                          notify="quit",                          attributes=[] },
+	# sendtextmessage targetmode=2 msg=hi
+	# -> {TextMessage} notifytextmessage targetmode=2 msg=hi invokerid=4 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=
+	{ name="SendTextMessage",               notify="sendtextmessage",               attributes=["targetmode@msg", "target@msg?", "msg"] },
+	# TODO
+	{ name="ServerCreate",                  notify="servercreate",                  attributes=["virtualserver_name"] }, # TODO PROPERTIES !
+	# TODO
+	{ name="ServerDelete",                  notify="serverdelete",                  attributes=["sid"] },
+	# virtualserver_password is sent two times in this message by the official client
+	{ name="ServerEdit",                    notify="serveredit",                    attributes=["sid?", "virtualserver_name?", "virtualserver_welcomemessage?", "virtualserver_maxclients?", "virtualserver_password?", "virtualserver_hostmessage?", "virtualserver_hostmessage_mode?", "virtualserver_hostbanner_url?", "virtualserver_hostbanner_gfx_url?", "virtualserver_hostbanner_gfx_interval?", "virtualserver_hostbutton_tooltip?", "virtualserver_hostbutton_url?", "virtualserver_hostbutton_gfx_url?", "virtualserver_icon_id?", "virtualserver_reserved_slots?", "virtualserver_hostbanner_mode?", "virtualserver_nickname?", "virtualserver_max_download_total_bandwidth?", "virtualserver_max_upload_total_bandwidth?", "virtualserver_download_quota?", "virtualserver_upload_quota?", "virtualserver_antiflood_points_tick_reduce?", "virtualserver_antiflood_points_needed_command_block?", "virtualserver_antiflood_points_needed_ip_block?", "virtualserver_codec_encryption_mode?", "virtualserver_needed_identity_security_level?", "virtualserver_default_server_group?", "virtualserver_default_channel_group?", "virtualserver_default_channel_admin_group?", "virtualserver_complain_autoban_count?", "virtualserver_complain_autoban_time?", "virtualserver_complain_remove_time?", "virtualserver_min_clients_in_channel_before_forced_silence?", "virtualserver_priority_speaker_dimm_modificator?", "virtualserver_name_phonetic?", "virtualserver_channel_temp_delete_delay_default?", "virtualserver_weblist_enabled?", "virtualserver_log_client?", "virtualserver_log_query?", "virtualserver_log_channel?", "virtualserver_log_permissions?", "virtualserver_log_server?", "virtualserver_log_filetransfer?"] },
+	# servergetvariables
+	# -> {ServerUpdated} notifyserverupdated virtualserver_welcomemessage=Welcome\sto\sTeamSpeak,\scheck\s[URL]www.teamspeak.com[\/URL]\sfor\slatest\sinformation virtualserver_maxclients=32 virtualserver_clientsonline=2 virtualserver_channelsonline=1 virtualserver_uptime=1523 virtualserver_hostmessage virtualserver_hostmessage_mode=0 virtualserver_flag_password=0 virtualserver_default_channel_admin_group=5 virtualserver_max_download_total_bandwidth=18446744073709551615 virtualserver_max_upload_total_bandwidth=18446744073709551615 virtualserver_complain_autoban_count=5 virtualserver_complain_autoban_time=1200 virtualserver_complain_remove_time=3600 virtualserver_min_clients_in_channel_before_forced_silence=100 virtualserver_antiflood_points_tick_reduce=5 virtualserver_antiflood_points_needed_command_block=150 virtualserver_antiflood_points_needed_ip_block=250 virtualserver_client_connections=1 virtualserver_query_client_connections=1 virtualserver_queryclientsonline=1 virtualserver_download_quota=18446744073709551615 virtualserver_upload_quota=18446744073709551615 virtualserver_month_bytes_downloaded=143900 virtualserver_month_bytes_uploaded=1737584828 virtualserver_total_bytes_downloaded=156464 virtualserver_total_bytes_uploaded=1737647648 virtualserver_port=9987 virtualserver_autostart=1 virtualserver_machine_id virtualserver_needed_identity_security_level=8 virtualserver_log_client=1 virtualserver_log_query=1 virtualserver_log_channel=1 virtualserver_log_permissions=1 virtualserver_log_server=1 virtualserver_log_filetransfer=1 virtualserver_min_client_version=1513163251 virtualserver_reserved_slots=0 virtualserver_total_packetloss_speech=0.0000 virtualserver_total_packetloss_keepalive=0.0000 virtualserver_total_packetloss_control=0.0000 virtualserver_total_packetloss_total=0.0000 virtualserver_total_ping=0.0000 virtualserver_weblist_enabled=1 virtualserver_min_android_version=1502275280 virtualserver_min_ios_version=1502275280 virtualserver_antiflood_points_needed_plugin_block=0
+	{ name="ServerVariablesRequest",        notify="servergetvariables",            attributes=[] },
+	# servergroupadd name=test type=1
+	# -> {ServerGroupList} notifyservergrouplist sgid=1 name=Guest\sServer\sQuery type=2 iconid=0 savedb=0 sortid=0 namemode=0 n_modifyp=100 n_member_addp=0 n_member_removep=0|...
+	{ name="ServerGroupAdd",                notify="servergroupadd",                attributes=["name", "type@group?"] },
+	# servergroupaddclient sgid=9 cldbid=2
+	# -> void
+	{ name="ServerGroupAddClient",          notify="servergroupaddclient",          attributes=["sgid", "cldbid"] },
+	# servergroupaddperm sgid=9 permid=179 permvalue=1 permnegated=0 permskip=0
+	# -> void
+	{ name="ServerGroupAddPerm",            notify="servergroupaddperm",            attributes=["sgid", "permid?", "permsid?", "permvalue", "permnegated", "permskip"] },
+	# TODO
+	{ name="ServerGroupAutoAddPerm",        notify="servergroupautoaddperm",        attributes=["sgtype", "permid?", "permsid?", "permvalue", "permnegated", "permskip"] },
+	# TODO
+	{ name="ServerGroupAutoDelPerm",        notify="servergroupautodelperm",        attributes=["sgtype", "permid?", "permsid?"] },
+	# servergroupclientlist sgid=6 -names
+	# -> {ServerGroupClientList} notifyservergroupclientlist sgid=6 cldbid=2 client_nickname=Splamy client_unique_identifier=uA0U7t4PBxdJ5TLnarsOHQh4\/tY=|cldbid=4 client_nickname=AudioBud client_unique_identifier=b+P0CqXms5I0C+A66HZ4Sbu\/PNw=|cldbid=8 client_nickname=Bot client_unique_identifier=lks7QL5OVMKo4pZ79cEOI5r5oEA=|cldbid=48 client_nickname=TestClient1 client_unique_identifier=r6YwpyjxGM7nJp21NlgCoaLRg9I=
+	{ name="ServerGroupClientListRequest",  notify="servergroupclientlist",         attributes=["sgid"] }, # -names
+	# servergroupcopy name=test\s(Copy) ssgid=9 tsgid=0 type=1
+	# -> {ServerGroupList} notifyservergrouplist ...
+	{ name="ServerGroupCopy",               notify="servergroupcopy",               attributes=["ssgid", "tsgid", "name", "type@group"] },
+	# servergroupdel sgid=10 force=0
+	# -> void
+	{ name="ServerGroupDel",                notify="servergroupdel",                attributes=["sgid", "force"] },
+	# servergroupdelclient sgid=9 cldbid=2
+	# -> void
+	{ name="ServerGroupDelClient",          notify="servergroupdelclient",          attributes=["sgid", "cldbid"] },
+	# servergroupdelperm sgid=9 permid=179
+	# -> void
+	{ name="ServerGroupDelPerm",            notify="servergroupdelperm",            attributes=["sgid", "permid?", "permsid?"] },
+	# servergrouplist
+	# -> {ServerGroupList} notifyservergrouplist ...
+	{ name="ServerGroupListRequest",        notify="servergrouplist",               attributes=[] },
+	# servergrouppermlist sgid=7
+	# -> {ServerGroupPermList} notifyservergrouppermlist sgid=7 permid=23 permvalue=1 permnegated=0 permskip=0|permid=24 permvalue=1 permnegated=0 permskip=0|...
+	{ name="ServerGroupPermListRequest",    notify="servergrouppermlist",           attributes=["sgid"] }, # -permsid
+	# servergrouprename sgid=9 name=testYY
+	# -> {ServerGroupList} notifyservergrouplist ...
+	{ name="ServerGroupRename",             notify="servergrouprename",             attributes=["sgid", "name"] },
+	# servergroupsbyclientid cldbid=2
+	# -> {ServerGroupsByClientId} notifyservergroupsbyclientid name=Server\sAdmin sgid=6 cldbid=2|name=Normal sgid=7 cldbid=2|name=testYY sgid=9 cldbid=2
+	{ name="ServerGroupsByClientIdRequest", notify="servergroupsbyclientid",        attributes=["cldbid"] },
+	# serveridgetbyport virtualserver_port=9987
+	# -> server_id=1
+	{ name="ServerIdGetByPort",             notify="serveridgetbyport",             attributes=["virtualserver_port"] },
+	# serverinfo
+	# -> virtualserver_unique_identifier=SwHpaSmzsKpQ4ksmdkMFOMpBhqA= virtualserver_name=TeamSpeak\s]I[\sServer virtualserver_welcomemessage=Welcome\sto\sTeamSpeak,\scheck\s[URL]www.teamspeak.com[\/URL]\sfor\slatest\sinformation virtualserver_platform=Windows virtualserver_version=3.4.0\s[Build:\s1536564584] virtualserver_maxclients=32 virtualserver_password virtualserver_clientsonline=1 virtualserver_channelsonline=1 virtualserver_created=1537603734 virtualserver_uptime=7590 virtualserver_codec_encryption_mode=0 virtualserver_hostmessage virtualserver_hostmessage_mode=0 virtualserver_filebase=files\\virtualserver_1 virtualserver_default_server_group=8 virtualserver_default_channel_group=8 virtualserver_flag_password=0 virtualserver_default_channel_admin_group=5 virtualserver_max_download_total_bandwidth=18446744073709551615 virtualserver_max_upload_total_bandwidth=18446744073709551615 virtualserver_hostbanner_url virtualserver_hostbanner_gfx_url virtualserver_hostbanner_gfx_interval=0 virtualserver_complain_autoban_count=5 virtualserver_complain_autoban_time=1200 virtualserver_complain_remove_time=3600 virtualserver_min_clients_in_channel_before_forced_silence=100 virtualserver_priority_speaker_dimm_modificator=-18.0000 virtualserver_id=1 virtualserver_antiflood_points_tick_reduce=5 virtualserver_antiflood_points_needed_command_block=150 virtualserver_antiflood_points_needed_ip_block=250 virtualserver_client_connections=5 virtualserver_query_client_connections=4 virtualserver_hostbutton_tooltip virtualserver_hostbutton_url virtualserver_hostbutton_gfx_url virtualserver_queryclientsonline=0 virtualserver_download_quota=18446744073709551615 virtualserver_upload_quota=18446744073709551615 virtualserver_month_bytes_downloaded=143900 virtualserver_month_bytes_uploaded=1737584828 virtualserver_total_bytes_downloaded=156464 virtualserver_total_bytes_uploaded=1737647648 virtualserver_port=9987 virtualserver_autostart=1 virtualserver_machine_id virtualserver_needed_identity_security_level=8 virtualserver_log_client=1 virtualserver_log_query=1 virtualserver_log_channel=1 virtualserver_log_permissions=1 virtualserver_log_server=1 virtualserver_log_filetransfer=1 virtualserver_min_client_version=1513163251 virtualserver_name_phonetic virtualserver_icon_id=0 virtualserver_reserved_slots=0 virtualserver_total_packetloss_speech=0.0000 virtualserver_total_packetloss_keepalive=0.0000 virtualserver_total_packetloss_control=0.0000 virtualserver_total_packetloss_total=0.0000 virtualserver_total_ping=0.0000 virtualserver_ip=0.0.0.0,\s:: virtualserver_weblist_enabled=1 virtualserver_ask_for_privilegekey=0 virtualserver_hostbanner_mode=0 virtualserver_channel_temp_delete_delay_default=0 virtualserver_min_android_version=1502275280 virtualserver_min_ios_version=1502275280 virtualserver_nickname virtualserver_antiflood_points_needed_plugin_block=0 virtualserver_status=online connection_filetransfer_bandwidth_sent=0 connection_filetransfer_bandwidth_received=0 connection_filetransfer_bytes_sent_total=0 connection_filetransfer_bytes_received_total=0 connection_packets_sent_speech=0 connection_bytes_sent_speech=0 connection_packets_received_speech=0 connection_bytes_received_speech=0 connection_packets_sent_keepalive=17990 connection_bytes_sent_keepalive=737590 connection_packets_received_keepalive=17990 connection_bytes_received_keepalive=755578 connection_packets_sent_control=620 connection_bytes_sent_control=121323 connection_packets_received_control=636 connection_bytes_received_control=78134 connection_packets_sent_total=18610 connection_bytes_sent_total=858913 connection_packets_received_total=18626 connection_bytes_received_total=833712 connection_bandwidth_sent_last_second_total=81 connection_bandwidth_sent_last_minute_total=83 connection_bandwidth_received_last_second_total=83 connection_bandwidth_received_last_minute_total=90
+	{ name="ServerInfo",                    notify="serverinfo",                    attributes=[] },
+	# serverlist
+	# -> {ServerListResponse} virtualserver_id=1 virtualserver_port=9987 virtualserver_status=online virtualserver_clientsonline=1 virtualserver_queryclientsonline=0 virtualserver_maxclients=32 virtualserver_uptime=7629 virtualserver_name=TeamSpeak\s]I[\sServer virtualserver_autostart=1 virtualserver_machine_id
+	{ name="ServerListRequest",             notify="serverlist",                    attributes=[] }, # -uid -short -all -onlyoffline
+	# [NOT FULL]
+	{ name="ServerNotifyRegister",          notify="servernotifyregister",          attributes=["event", "id?"] },
+	# [NOT FULL]
+	{ name="ServerNotifyUnregister",        notify="servernotifyunregister",        attributes=[] },
+	# TODO
+	{ name="ServerProcessStop",             notify="serverprocessstop",             attributes=["reasonmsg?"] },
+	# serverrequestconnectioninfo
+	# -> {ServerConnectionInfo} notifyserverconnectioninfo connection_filetransfer_bandwidth_sent=0 connection_filetransfer_bandwidth_received=0 connection_filetransfer_bytes_sent_total=0 connection_filetransfer_bytes_received_total=0 connection_packets_sent_total=1789 connection_bytes_sent_total=94989 connection_packets_received_total=1791 connection_bytes_received_total=81239 connection_bandwidth_sent_last_second_total=863 connection_bandwidth_sent_last_minute_total=107 connection_bandwidth_received_last_second_total=251 connection_bandwidth_received_last_minute_total=93 connection_connected_time=1703 connection_packetloss_total=0.0000 connection_ping=0.0000
+	{ name="ServerConnectionInfoRequest",   notify="serverrequestconnectioninfo",   attributes=[] },
+	# TODO
+	{ name="ServerSnapshotCreate",          notify="serversnapshotcreate",          attributes=[] },
+	# TODO
+	{ name="ServerSnapshotDeploy",          notify="serversnapshotdeploy",          attributes=[] }, # -mapping
+	# TODO
+	{ name="ServerStart",                   notify="serverstart",                   attributes=["sid"] },
+	# TODO
+	{ name="ServerStop",                    notify="serverstop",                    attributes=["sid", "reasonmsg?"] },
+	# servertemppasswordadd pw=1234 desc=asdf duration=42 tcid=1 tcpw=4321
+	# -> void
+	{ name="ServerTempPasswordAdd",         notify="servertemppasswordadd",         attributes=["pw", "desc", "duration@time", "tcid", "tcpw"] },
+	# servertemppassworddel pw=1234
+	# -> void
+	{ name="ServerTempPasswordDel",         notify="servertemppassworddel",         attributes=["pw"] },
+	# servertemppasswordlist
+	# -> {ServerTempPasswordList} notifyservertemppasswordlist nickname=Splamy uid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= desc=asdf pw_clear=1234 start=1539346669 end=1539346711 tcid=1 tcpw=4321
+	{ name="ServerTempPasswordListRequest", notify="servertemppasswordlist",        attributes=[] },
+	# setclientchannelgroup cgid=9 cid=1 cldbid=2
+	# -> {ClientChannelGroupChanged} notifyclientchannelgroupchanged invokerid=3 invokername=Splamy invokeruid=uA0U7t4PBxdJ5TLnarsOHQh4\/tY= cgid=9 cid=3 clid=3 cgi=3
+	{ name="SetClientChannelGroup",         notify="setclientchannelgroup",         attributes=["cgid", "cid", "cldbid"] },
+	# setconnectioninfo connection_ping=0.0000 connection_ping_deviation=0.3143 connection_packets_sent_speech=1 connection_packets_sent_keepalive=10 connection_packets_sent_control=44 connection_bytes_sent_speech=44 connection_bytes_sent_keepalive=412 connection_bytes_sent_control=5830 connection_packets_received_speech=0 connection_packets_received_keepalive=10 connection_packets_received_control=40 connection_bytes_received_speech=0 connection_bytes_received_keepalive=408 connection_bytes_received_control=5421 connection_server2client_packetloss_speech=0.0000 connection_server2client_packetloss_keepalive=0.0000 connection_server2client_packetloss_control=0.0000 connection_server2client_packetloss_total=0.0000 connection_bandwidth_sent_last_second_speech=0 connection_bandwidth_sent_last_second_keepalive=40 connection_bandwidth_sent_last_second_control=552 connection_bandwidth_sent_last_minute_speech=4 connection_bandwidth_sent_last_minute_keepalive=41 connection_bandwidth_sent_last_minute_control=639 connection_bandwidth_received_last_second_speech=0 connection_bandwidth_received_last_second_keepalive=40 connection_bandwidth_received_last_second_control=147 connection_bandwidth_received_last_minute_speech=0 connection_bandwidth_received_last_minute_keepalive=41 connection_bandwidth_received_last_minute_control=595
+	{ name="SetConnectionInfo",             notify="setconnectioninfo",             attributes=["connection_ping", "connection_ping_deviation", "connection_packets_sent_speech", "connection_packets_sent_keepalive", "connection_packets_sent_control", "connection_bytes_sent_speech", "connection_bytes_sent_keepalive", "connection_bytes_sent_control", "connection_packets_received_speech", "connection_packets_received_keepalive", "connection_packets_received_control", "connection_bytes_received_speech", "connection_bytes_received_keepalive", "connection_bytes_received_control", "connection_server2client_packetloss_speech", "connection_server2client_packetloss_keepalive", "connection_server2client_packetloss_control", "connection_server2client_packetloss_total", "connection_bandwidth_sent_last_second_speech", "connection_bandwidth_sent_last_second_keepalive", "connection_bandwidth_sent_last_second_control", "connection_bandwidth_sent_last_minute_speech", "connection_bandwidth_sent_last_minute_keepalive", "connection_bandwidth_sent_last_minute_control", "connection_bandwidth_received_last_second_speech", "connection_bandwidth_received_last_second_keepalive", "connection_bandwidth_received_last_second_control", "connection_bandwidth_received_last_minute_speech", "connection_bandwidth_received_last_minute_keepalive", "connection_bandwidth_received_last_minute_control"] },
+	# tokenadd tokentype=0 tokenid1=7 tokenid2=0 tokendescription=test
+	# -> {TokenAdd} notifytokenadd token=example
+	{ name="TokenAddRequest",               notify="tokenadd",                      attributes=["tokentype", "tokenid1", "tokenid2", "tokendescription?", "tokencustomset?"] },
+	# tokendelete token=example
+	# -> void
+	{ name="TokenDelete",                   notify="tokendelete",                   attributes=["token"] },
+	# tokenlist
+	# -> {TokenList} notifytokenlist token=example token_type=0 token_id1=7 token_id2=0 token_created=1539343950 token_description=test|...
+	{ name="TokenListRequest",              notify="tokenlist",                     attributes=[] },
+	# tokenuse token=example
+	# -> (vary)
+	{ name="TokenUse",                      notify="tokenuse",                      attributes=["token"] },
+	# use $
+	# -> void
+	{ name="Use",                           notify="use",                           attributes=["sid?", "port?"] }, # -virtual
+	# version
+	# -> version=3.4.0 build=1536564584 platform=Windows
+	{ name="VersionRequest",                notify="version",                       attributes=[] },
+	# whoami
+	# -> {WhoAmI} virtualserver_status=online virtualserver_id=1 virtualserver_unique_identifier=SwHpaSmzsKpQ4ksmdkMFOMpBhqA= virtualserver_port=9987 client_id=4 client_channel_id=1 client_nickname=Splamy client_database_id=0 client_login_name client_unique_identifier client_origin_server_id=0
+	{ name="WhoAmIRequest",                 notify="whoami",                        attributes=[] },
+	# clientdisconnect reasonid=7 reasonmsg=Client\sdisconnected
+	{ name="Disconnect",                    notify="clientdisconnect",              attributes=["reasonid?", "reasonmsg?"] },
+]

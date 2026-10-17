@@ -1,0 +1,342 @@
+<#@ template cleanws="true" #>
+use std::borrow::Cow;
+// Needed for vector serialization
+#[allow(unused_imports)]
+use std::fmt::Write as _;
+use std::str;
+
+use base64::prelude::*;
+use num_traits::{FromPrimitive, ToPrimitive};
+use tracing::{instrument, warn};
+use tsproto_packets::commands::{CommandItem, CommandParser};
+use tsproto_packets::packets::*;
+
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+pub enum InMessage {
+<# for msg_group in &self.0.msg_group {
+	for msg in &msg_group.msg { #>
+	<#= msg.name #>(In<#= msg.name #>),
+<# }
+} #>
+}
+
+impl InMessage {
+	/// Parse a message into a struct.
+	pub fn new(header: &InHeader, cmd: &[u8]) -> Result<Self> {
+		let (name, args) = CommandParser::new(cmd);
+		match name {
+		<#
+			let mut msgs: Vec<_> = self.0.msg_group.iter()
+				.flat_map(|g| g.msg.iter())
+				.filter(|m| m.notify.is_some())
+				.collect();
+			msgs.sort_unstable_by_key(|m| m.notify.as_ref().map(|s| s.as_str()).unwrap());
+			for (notify, group) in &msgs.iter().group_by(|m| m.notify.as_ref().map(|s| s.as_str()).unwrap()) {
+				let group: Vec<_> = group.collect();
+				let (msg, group) = group.split_last().unwrap();
+				#>
+			b"<#= notify #>" => <# for msg in group {
+			#>if let Ok(r) = In<#= msg.name #>::new(header, args.clone()) {
+				Ok(InMessage::<#= msg.name #>(r))
+			} else <#
+			} #>{
+				Ok(InMessage::<#= msg.name #>(In<#= msg.name #>::new(header, args)?))
+			}
+			<# } #>
+			s => Err(ParseError::UnknownCommand(str::from_utf8(s)?.to_string())),
+		}
+	}
+
+	pub fn get_command_name(&self) -> &'static str {
+		match self {
+		<# for msg_group in &self.0.msg_group {
+			for msg in &msg_group.msg { #>
+			InMessage::<#= msg.name #>(_) => "<#= if let Some(s) = &msg.notify { s } else { &msg.name } #>",
+		<# }
+		} #>
+		}
+	}
+}
+
+<# for msg_group in &self.0.msg_group {
+	for msg in &msg_group.msg {
+		let has_attributes = !msg.attributes.is_empty(); #>
+#[derive(Clone, Debug)]
+pub struct In<#= msg.name #> {
+	<# if msg_group.default.response { #>
+	pub return_code: Option<String>,
+	<# }
+	if has_attributes { #>
+	list: Vec<In<#= msg.name #>Part>,
+	<# } #>
+}
+<# if has_attributes { #>
+
+#[derive(Clone, Debug)]
+pub struct In<#= msg.name #>Part {
+	<# for a in &msg.attributes {
+		let field = self.0.get_field(a);
+		if field.get_rust_name() != field.ts { #>
+	/// `<#= field.ts #>` in TeamSpeak
+		<# } #>
+	pub <#= field.get_rust_name() #>: <#= field.get_type(a)? #>,
+	<# } #>
+}
+<# } #>
+
+impl InMessageTrait for In<#= msg.name #> {
+	#[instrument(name = "parse_message", skip(header, <# if !has_attributes { #>_<# } #>args))]
+	fn new(header: &InHeader, <# if !has_attributes { #>_<# } #>args: CommandParser) -> Result<Self> {
+		// TODO newprotocol
+		//if <#= if msg_group.default.np { "!" } else { "" } #>header.flags().contains(Flags::NEWPROTOCOL) { return Err(ParseError::WrongNewprotocol(<#= if msg_group.default.np { "false" } else { "true" } #>)); }
+		// Servers disagree on which command channel some notifications use (TeaSpeak sends pokes as
+		// Command, TS3 as CommandLow), so accept both.
+		if !matches!(header.packet_type(), PacketType::Command | PacketType::CommandLow) { return Err(ParseError::WrongPacketType(header.packet_type())); }
+		<# if !msg_group.default.s2c { #>
+		if header.direction() == Direction::S2C { return Err(ParseError::WrongDirection(header.direction())); }
+		<# } #>
+		<# if !msg_group.default.c2s { #>
+		if header.direction() == Direction::C2S { return Err(ParseError::WrongDirection(header.direction())); }
+		<# } #>
+
+	<# if msg_group.default.response { #>
+		let mut return_code = None;
+	<# } #>
+	<# for a in &msg.attributes { #>
+		let mut <#= self.0.get_field(a).get_rust_name() #> = None;
+	<# } #>
+
+	<# if !has_attributes { #>
+		Ok(In<#= msg.name #> {<# if msg_group.default.response { #> return_code <# } #>})
+	<# } else { #>
+		let mut list = Vec::<In<#= msg.name #>Part>::new();
+		for item in args.chain(std::iter::once(CommandItem::NextCommand)) {
+			match item {
+				CommandItem::NextCommand => {
+					// Build command
+					let new = In<#= msg.name #>Part {
+					<# for a in &msg.attributes {
+						let field = self.0.get_field(a);
+						let transform_func = if !field.get_type(a)?.is_primitive() {
+							".clone()"
+						} else {
+							""
+						}; #>
+						<#= field.get_rust_name() #>: <#= field.get_rust_name() #>
+						<# if !a.ends_with('?') { /* is not optional */ #>
+							.take()
+							.or_else(|| list.first().map(|p| p.<#= field.get_rust_name() #><#= transform_func #>))
+							.ok_or(ParseError::ParameterNotFound { arg: "<#= field.pretty #>", name: "<#= msg.name #>", })?,
+						<# } else { #>
+							.take()
+							.or_else(|| list.first().and_then(|p| p.<#= field.get_rust_name() #><#= transform_func #>)),
+						<# } #>
+					<# } #>
+					};
+					list.push(new);
+				}
+				CommandItem::Argument(arg) => {
+					match arg.name() {
+					<# for a in &msg.attributes {
+						let field = self.0.get_field(a); #>
+						b"<#= field.ts #>" => {
+							let val = arg.value().get_str()?;
+							let val = val.as_ref();
+							<#= field.get_rust_name() #> = Some({
+								<# #><#= generate_deserializer(field) #>
+							});
+						}
+					<# } #>
+					<# if msg_group.default.response { #>
+						b"return_code" => {
+							if return_code.is_some() {
+								warn!(command = "<#= msg.name #>", "Got multiple return codes");
+							}
+							return_code = Some(arg.value().get_str()?.into_owned());
+						}
+					<# } #>
+						s => warn!(command = "<#= msg.name #>", argument = ?str::from_utf8(s),
+							"Unknown argument"),
+					}
+				}
+			}
+		}
+
+		Ok(In<#= msg.name #> {<# if msg_group.default.response { #> return_code,<# } #> list })
+	<# } #>
+	}
+}
+
+<# if has_attributes { #>
+impl In<#= msg.name #> {
+	#[inline]
+	pub fn iter(&self) -> InMessageIterator<In<#= msg.name #>Part> { self.into_iter() }
+}
+
+impl<'a> IntoIterator for &'a In<#= msg.name #> {
+	type Item = &'a In<#= msg.name #>Part;
+	type IntoIter = InMessageIterator<'a, In<#= msg.name #>Part>;
+	#[inline]
+	fn into_iter(self) -> Self::IntoIter { InMessageIterator(&self.list, 0) }
+}
+
+impl In<#= msg.name #>Part {
+	pub fn get_invoker(&self) -> Option<Invoker> {
+	<#
+	let mut has_invoker_id = false;
+	let mut has_invoker_name = false;
+	let mut has_invoker_uid = false;
+	let mut invoker_optional = true;
+
+	for a in &msg.attributes {
+		let field = self.0.get_field(a);
+		match field.ts.as_str() {
+			"invokerid" => {
+				has_invoker_id = true;
+				invoker_optional = a.ends_with('?');
+			}
+			"invokername" => has_invoker_name = true,
+			"invokeruid" => has_invoker_uid = true,
+			_ => {}
+		}
+	}
+
+	if has_invoker_id && has_invoker_name && has_invoker_uid { #>
+	<# if invoker_optional { #>
+		let id = self.invoker_id?;
+		let name = self.invoker_name.clone()?;
+		let uid = self.invoker_uid.clone();
+	<# } else { #>
+		let id = self.invoker_id;
+		let name = self.invoker_name.clone();
+		let uid = self.invoker_uid.clone();
+	<# } #>
+		Some(Invoker {
+			id,
+			name,
+			uid,
+		})
+	<# } else { #>
+		None
+	<# } #>
+	}
+
+	pub fn as_out(&self) -> Out<#= msg.name #>Part {
+		Out<#= msg.name #>Part {
+		<#
+		let mut uses_lifetime = false;
+		for a in &msg.attributes {
+			let field = self.0.get_field(a);
+			let ty = field.get_type(a)?;
+			let mut from = ty
+				.code_as_ref("field")
+				.replacen("field", &format!("self.{}", field.get_rust_name()), 1);
+			if ty.to_cow().is_cow() {
+				if ty.is_opt() {
+					from.push_str(".map(Cow::Borrowed)");
+				} else {
+					from = format!("Cow::Borrowed({})", from);
+				}
+			} #>
+			<#= field.get_rust_name() #>: <#= from #>,
+		<# } #>
+		}
+	}
+}
+<# } #>
+
+<# }
+} #>
+
+/// The iterator is guaranteed to output at least one part.
+pub struct InMessageIterator<'a, T>(&'a [T], usize);
+impl<'a, T> Iterator for InMessageIterator<'a, T> {
+	type Item = &'a T;
+	fn next(&mut self) -> Option<Self::Item> {
+		let i = self.1;
+		self.1 += 1;
+		self.0.get(i)
+	}
+}
+
+<# for msg_group in &self.0.msg_group {
+	let defs = &msg_group.default;
+	for msg in &msg_group.msg {
+		let uses_lifetime = self.0.uses_lifetime(msg);
+		let has_attributes = msg_group.default.response || !msg.attributes.is_empty(); #>
+
+<# if has_attributes { #>
+#[derive(Clone, Debug)]
+pub struct Out<#= msg.name #>Part<# if uses_lifetime { #><'a><# } #> {
+<# for a in &msg.attributes {
+	let field = self.0.get_field(a);
+	if field.get_rust_name() != field.ts { #>
+	/// `<#= field.ts #>` in TeamSpeak
+	<# } #>
+	pub <#= field.get_rust_name() #>: <#= field.get_type(a)?.to_cow().lifetime(true) #>,
+<# } #>
+}
+
+<#
+let part_name = format!("Out{}Part{}", msg.name, if uses_lifetime { "<'a>" } else { "" });
+#>
+impl<<# if uses_lifetime { #>'a, <# } #>> OutMessage<# if msg_group.default.response { #>WithReturn<# } #>Trait for &mut dyn Iterator<Item=<#= part_name #>> {
+	fn to_packet(self<#
+		if msg_group.default.response { #>, return_code: Option<&str><# } #>) -> OutCommand
+	where Self: Sized {
+		Out<#= msg.name #>Message::new(self<#
+			if msg_group.default.response { #>, return_code<# } #>)
+	}
+}
+
+impl<<# if uses_lifetime { #>'a, <# } #>> OutMessage<# if msg_group.default.response { #>WithReturn<# } #>Trait for <#= part_name #> {
+	fn to_packet(self<#
+		if msg_group.default.response { #>, return_code: Option<&str><# } #>) -> OutCommand
+	where Self: Sized {
+		Out<#= msg.name #>Message::new(&mut std::iter::once(self)<#
+			if msg_group.default.response { #>, return_code<# } #>)
+	}
+}
+
+<# } #>
+pub struct Out<#= msg.name #>Message;
+impl Out<#= msg.name #>Message {
+	#[allow(clippy::let_and_return, clippy::new_ret_no_self)]
+	pub fn new(<# if has_attributes { #>parts: &mut dyn Iterator<Item=Out<#= msg.name #>Part><#
+			if msg_group.default.response { #>, return_code: Option<&str><# } } #>) -> OutCommand {
+		let<# if has_attributes { #> mut<# } #> packet = OutCommand::new(
+			Direction::<#= if msg_group.default.s2c { "S2C" } else { "C2S" } #>,
+			Flags::<#= if msg_group.default.np { "NEWPROTOCOL" } else { "empty()" } #>,
+			PacketType::Command<# if msg_group.default.low { #>Low<# } #>,
+			"<#= msg.notify.as_ref().map(|s| s.as_str()).unwrap_or("") #>",
+		);
+	<# if msg_group.default.response { #>
+		if let Some(r) = return_code {
+			packet.write_arg("return_code", &r);
+		}
+	<# } #>
+	<# if !msg.attributes.is_empty() { #>
+		let mut first = true;
+		for p in parts {
+			if first {
+				first = false;
+			} else {
+				packet.start_new_part();
+			}
+		<# for a in &msg.attributes {
+			let field = self.0.get_field(a);
+			if a.ends_with('?') { #>
+			if let Some(val) = p.<#= field.get_rust_name() #> { packet.write_arg("<#= field.ts #>", <#= generate_serializer(field, "val") #>); }
+			<# } else { #>
+			packet.write_arg("<#= field.ts #>", <#= generate_serializer(field, &format!("p.{}", field.get_rust_name())) #>);
+			<# } #>
+		<# } #>
+		}
+	<# } #>
+
+		packet
+	}
+}
+<# }
+} #>

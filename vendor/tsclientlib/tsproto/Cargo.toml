@@ -1,0 +1,67 @@
+[package]
+name = "tsproto"
+version = "0.2.0"
+authors = ["Flakebi <flakebi@t-online.de>"]
+description = "An implementation of the TeamSpeak3 protocol as a library for use in clients and bots."
+repository = "https://github.com/ReSpeak/tsclientlib"
+readme = "README.md"
+keywords = ["teamspeak3", "ts3", "voip"]
+categories = ["multimedia"]
+license = "MIT OR Apache-2.0"
+edition = "2018"
+autobenches = false
+include = [
+	"/Cargo.toml",
+	"/README.md",
+	"**/*.rs",
+]
+
+[dependencies]
+aes = "0.8"
+base64 = "0.22"
+omnom = "3"
+curve25519-dalek-ng = "4"
+eax = "0.5"
+futures = "0.3"
+generic-array = "0.14"
+git-testament = "0.2"
+num-bigint = "0.4"
+num-derive = "0.4"
+num-traits = "0.2"
+pin-project-lite = "0.2"
+rand = "0.10"
+rug = { version = "1", optional = true, default-features = false, features = ["integer"] }
+serde = { version = "1", features = ["derive"] }
+sha-1 = "0.10"
+sha2 = "0.10"
+thiserror = "2"
+time = { version = "0.3", features = ["formatting"] }
+tokio = { version = "1", features = ["macros", "net", "sync", "time"] }
+tracing = "0.1"
+tsproto-packets = { path = "../utils/tsproto-packets", version = "0.1" }
+tsproto-types = { path = "../utils/tsproto-types", version = "0.1" }
+quicklz = "0.3"
+
+[dev-dependencies]
+anyhow = "1"
+criterion = "0.8"
+once_cell = "1"
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "signal"] }
+tracing-subscriber = "0.3"
+
+[[bench]]
+name = "modpow"
+harness = false
+
+[[bench]]
+name = "connect"
+harness = false
+
+[[bench]]
+name = "license"
+harness = false
+
+[[bench]]
+name = "message"
+harness = false

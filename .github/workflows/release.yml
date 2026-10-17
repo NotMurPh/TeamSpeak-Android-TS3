@@ -1,0 +1,185 @@
+name: Android Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BASE_VERSION: 0.1.0
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-2022
+    timeout-minutes: 90
+    outputs:
+      artifact-id: ${{ steps.assets.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install pinned Rust and cargo-ndk
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --target aarch64-linux-android
+          if ($LASTEXITCODE -ne 0) { throw "Rust toolchain installation failed." }
+          cargo install cargo-ndk --version 4.1.2 --locked
+          if ($LASTEXITCODE -ne 0) { throw "cargo-ndk installation failed." }
+
+      - name: Install pinned Android SDK and NDK
+        shell: pwsh
+        run: |
+          if (-not $env:ANDROID_HOME) { throw "The Windows runner must provide ANDROID_HOME." }
+          $sdkmanager = Join-Path $env:ANDROID_HOME "cmdline-tools/latest/bin/sdkmanager.bat"
+          if (-not (Test-Path -LiteralPath $sdkmanager)) { throw "Android SDK command-line tools were not found." }
+          1..100 | ForEach-Object { "y" } | & $sdkmanager --licenses
+          if ($LASTEXITCODE -ne 0) { throw "Android SDK license acceptance failed." }
+          & $sdkmanager "platform-tools" "platforms;android-37.0" "build-tools;36.0.0" "ndk;29.0.14206865"
+          if ($LASTEXITCODE -ne 0) { throw "Android SDK installation failed." }
+
+      - name: Build native core, test, and check generated bindings
+        shell: pwsh
+        run: |
+          & ./tools/build-core.ps1
+          cargo test --locked -p tscore --lib
+          if ($LASTEXITCODE -ne 0) { throw "Rust core tests failed." }
+          git diff --exit-code -- android/app/src/main/java
+          if ($LASTEXITCODE -ne 0) { throw "Generated Kotlin bindings differ from checked-in source." }
+          $changes = git status --porcelain --untracked-files=all -- android/app/src/main/java
+          if ($LASTEXITCODE -ne 0 -or $changes) { throw "Generated Kotlin bindings must be checked in before releasing." }
+
+      - name: Sign, lint, build, and verify release assets
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          $keystore = Join-Path $env:RUNNER_TEMP "android-release.jks"
+          try {
+              if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64)) { throw "ANDROID_KEYSTORE_BASE64 is required." }
+              [IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
+              $env:ANDROID_KEYSTORE_PATH = $keystore
+              & ./tools/release.ps1 -VersionCode (1000 + [int]$env:GITHUB_RUN_NUMBER) `
+                  -VersionName "$env:BASE_VERSION+build.$env:GITHUB_RUN_NUMBER" `
+                  -Commit $env:GITHUB_SHA -Repository $env:GITHUB_REPOSITORY -Tag "build-$env:GITHUB_RUN_NUMBER"
+          } finally {
+              if (Test-Path -LiteralPath $keystore) { Remove-Item -LiteralPath $keystore -Force }
+              Remove-Item Env:ANDROID_KEYSTORE_PATH -ErrorAction SilentlyContinue
+          }
+
+      - name: Remove temporary keystore
+        if: always()
+        shell: pwsh
+        run: |
+          $keystore = Join-Path $env:RUNNER_TEMP "android-release.jks"
+          if (Test-Path -LiteralPath $keystore) { Remove-Item -LiteralPath $keystore -Force }
+
+      - name: Transfer verified public assets
+        id: assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-${{ github.run_attempt }}
+          path: |
+            dist/teamspeak-android-arm64-v8a.apk
+            dist/third-party-licenses.zip
+            dist/SHA256SUMS
+            dist/update.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    concurrency:
+      group: release-publish-${{ github.run_number }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: dist
+          merge-multiple: true
+
+      - name: Publish unique release without replacing published assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="build-$GITHUB_RUN_NUMBER"
+          VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))
+          VERSION_NAME="$BASE_VERSION+build.$GITHUB_RUN_NUMBER"
+          cd dist
+          sha256sum --check SHA256SUMS
+          jq -e --arg commit "$GITHUB_SHA" --argjson code "$VERSION_CODE" --arg name "$VERSION_NAME" \
+            --arg url "https://github.com/$GH_REPO/releases/download/$TAG/teamspeak-android-arm64-v8a.apk" \
+            '.schemaVersion == 1 and .commit == $commit and .versionCode == $code and .versionName == $name and
+             .applicationId == "com.tsrewrite.client" and .minSdk == 26 and .abi == "arm64-v8a" and .downloadUrl == $url' update.json
+          test "$(sha256sum teamspeak-android-arm64-v8a.apk | cut -d ' ' -f 1)" = "$(jq -r .sha256 update.json)"
+
+          existing=$(gh api --paginate "repos/$GH_REPO/releases?per_page=100" \
+            --jq ".[] | select(.tag_name == \"$TAG\")")
+          if [[ -n "$existing" && $(jq -r .draft <<< "$existing") == false ]]; then
+            echo "$TAG is already published; leaving its tag and assets untouched."
+            exit 0
+          fi
+          tag_ref=$(gh api "repos/$GH_REPO/git/matching-refs/tags/$TAG" \
+            --jq ".[] | select(.ref == \"refs/tags/$TAG\") | .ref")
+          if [[ -n "$tag_ref" ]]; then
+            test "$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)" = "$GITHUB_SHA"
+          fi
+          if [[ -n "$existing" ]]; then
+            test "$(jq -r .target_commitish <<< "$existing")" = "$GITHUB_SHA"
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --draft --latest=false --title "$VERSION_NAME" \
+              --notes "Android 8+ (API 26), arm64-v8a. Version code: $VERSION_CODE. Commit: $GITHUB_SHA.
+
+          First dedicated-key release: if you have an older debug-signed app, export its backup BEFORE uninstalling it. The new certificate requires one reinstall; import your backup afterward. Subsequent releases signed with this key can update normally.
+
+          Third-party notices are embedded under assets/licenses in the APK and included in third-party-licenses.zip. The bundle discloses the known realfft 3.5.0 upstream attribution gap; it is not a complete resolved Gradle classpath license audit.
+
+          SHA256SUMS covers the APK, third-party-licenses.zip, and update.json. update.json is release metadata only; no in-app updater is implemented."
+          fi
+          gh release upload "$TAG" teamspeak-android-arm64-v8a.apk third-party-licenses.zip SHA256SUMS update.json --clobber
+          gh release edit "$TAG" --draft=false --latest=false
+
+  promote:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    # Only promotion is serialized across pushes. Build/publication never cancel another push.
+    concurrency:
+      group: android-release-latest
+      cancel-in-progress: false
+    steps:
+      - name: Promote the highest published build, not the last job to finish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          releases=$(gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100")
+          tag=$(jq -r '[.[][] | select(.draft == false and .prerelease == false) |
+            select(.tag_name | test("^build-[1-9][0-9]*$"))] |
+            max_by(.tag_name | ltrimstr("build-") | tonumber) | .tag_name // empty' <<< "$releases")
+          test -n "$tag"
+          gh release edit "$tag" --latest

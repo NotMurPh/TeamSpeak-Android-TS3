@@ -1,0 +1,25 @@
+[package]
+name = "tsproto-packets"
+version = "0.1.0"
+authors = ["Flakebi <flakebi@t-online.de>"]
+description = "Parse and serialize TeamSpeak packets and commands."
+repository = "https://github.com/ReSpeak/tsclientlib/tree/master/utils/tsproto-packets"
+readme = "README.md"
+keywords = ["teamspeak3", "ts3"]
+license = "MIT OR Apache-2.0"
+edition = "2018"
+include = [
+	"/Cargo.toml",
+	"/README.md",
+	"/src/*.rs",
+]
+
+[dependencies]
+base64 = "0.22"
+bitflags = "2"
+num-derive = "0.4"
+num-traits = "0.2"
+omnom = "3"
+self_cell = "1"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
