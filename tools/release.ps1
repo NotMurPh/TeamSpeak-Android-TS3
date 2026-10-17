@@ -84,7 +84,7 @@ $badging = & (Join-Path $buildTools "aapt2.exe") dump badging $apk
 if ($LASTEXITCODE -ne 0) { throw "Could not inspect the APK manifest." }
 $badgingText = $badging -join "`n"
 if ($badgingText -notmatch "(?m)^package: name='$([regex]::Escape($applicationId))' versionCode='$VersionCode' versionName='$([regex]::Escape($VersionName))'" -or
-    $badgingText -notmatch "(?m)^sdkVersion:'26'\s*$" -or
+    $badgingText -notmatch "(?m)^(min)?[sS]dkVersion:'26'\s*$" -or
     $badgingText -notmatch "(?m)^native-code: 'arm64-v8a'\s*$" -or
     $badgingText -match '(?m)^application-debuggable') {
     throw "APK package, version, minSdk, ABI, or non-debuggable validation failed."
