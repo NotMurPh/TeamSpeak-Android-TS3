@@ -168,7 +168,8 @@ fun SettingsPage(store: Store, session: Session, onBack: () -> Unit) {
                 Labeled("Playback volume", "${(s.volume * 100).toInt()}%") {
                     androidx.compose.material3.Slider(s.volume, { v -> update { it.copy(volume = v) } }, valueRange = 0f..2f)
                 }
-                Toggle("Use headphone mic", "Talk through your headphones' mic. LE Audio earbuds keep full sound quality; older Bluetooth earbuds switch to call quality while their mic is used", s.useHeadsetMic) { v -> update { it.copy(useHeadsetMic = v) } }
+                Toggle("Use wired headset mic", "Talk through the mic of wired or USB headphones", s.useHeadsetMic) { v -> update { it.copy(useHeadsetMic = v) } }
+                Toggle("Use Bluetooth earbuds' mic", "Off: earbuds only play and you talk through the phone. On: earbuds act as in a call (this may change their noise cancelling); LE Audio earbuds keep full sound quality, older ones switch to call quality", s.btHeadsetMic) { v -> update { it.copy(btHeadsetMic = v) } }
                 Toggle("Use loudspeaker", "When no headphones are connected. Off plays through the phone's top speaker, like a call", s.speakerphone) { v -> session.setSpeakerphone(v) }
                 if (connected == null) MicTestRow(store)
             }

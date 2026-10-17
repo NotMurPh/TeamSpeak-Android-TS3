@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withTimeoutOrNull
 import uniffi.tscore.ServerView
 import uniffi.tscore.avatarPath
 import java.io.File
@@ -34,16 +37,45 @@ class IconStore(private val context: Context, private val session: Session) {
     private val requested = mutableSetOf<Long>()
     private val requestedAvatars = mutableSetOf<String>()
     private var bannerUrl = ""
-    private val limit = Semaphore(3)
     private var dir = File(context.cacheDir, "icons")
+
+    /**
+     * Downloads run one at a time: with several at once, official servers refuse most of them
+     * (FileTransferLimitReached) and TeaSpeak leaves some unanswered forever. The server icon and avatars
+     * go before the many channel and group icons.
+     */
+    private var urgent = Channel<Download>(Channel.UNLIMITED)
+    private var normal = Channel<Download>(Channel.UNLIMITED)
+    private var worker: Job? = null
+
+    private class Download(val path: String, val file: File, val done: (File) -> Unit, var tries: Int = 0)
 
     fun reset(server: String) {
         dir = File(context.cacheDir, "icons/" + md5(server.lowercase()).take(12)).apply { mkdirs() }
         synchronized(this) { requested.clear(); requestedAvatars.clear() }
         _icons.value = emptyMap(); _avatars.value = emptyMap(); _banner.value = null; bannerUrl = ""; bannerJob?.cancel()
+        worker?.cancel(); urgent.close(); normal.close()
+        urgent = Channel(Channel.UNLIMITED); normal = Channel(Channel.UNLIMITED)
+        val (u, n) = urgent to normal
+        worker = session.scope.launch { work(u, n) }
+    }
+
+    private suspend fun work(urgent: Channel<Download>, normal: Channel<Download>) {
+        while (true) {
+            val d = urgent.tryReceive().getOrNull() ?: select { urgent.onReceive { it }; normal.onReceive { it } }
+            if (d.file.exists() && d.file.length() > 0) { d.done(d.file); continue }
+            val err = withTimeoutOrNull(15_000) { session.download(0u, d.path, "", d.file) } ?: "timed out"
+            when {
+                err == null -> d.done(d.file)
+                // Missing files stay missing; anything else (busy, timed out) is tried again later.
+                "NotFound" in err || "InvalidPath" in err || err == "disconnected" -> {}
+                ++d.tries < 3 -> session.scope.launch { delay(3000L * d.tries); normal.trySend(d) }
+            }
+        }
     }
 
     fun prefetch(v: ServerView) {
+        urgentIcon = v.iconId.toLong() and 0xffffffffL
         val ids = buildSet {
             add(v.iconId.toLong())
             v.channels.forEach { add(it.iconId.toLong()) }
@@ -60,26 +92,18 @@ class IconStore(private val context: Context, private val session: Session) {
 
     private fun icon(id: Long) {
         synchronized(this) { if (!requested.add(id)) return }
-        val f = File(dir, "icon_$id")
-        session.scope.launch {
-            limit.withPermit {
-                if (!f.exists()) session.download(0u, "/icon_$id", "", f)
-                decode(f, icon = true)?.let { bmp -> _icons.update { it + (id to bmp) } }
-            }
-        }
+        val d = Download("/icon_$id", File(dir, "icon_$id"), { f -> decode(f, icon = true)?.let { bmp -> _icons.update { it + (id to bmp) } } })
+        (if (urgentIcon == id) urgent else normal).trySend(d)
     }
+
+    /** The server's own icon, loaded first. */
+    @Volatile private var urgentIcon = 0L
 
     /** Loads a client's avatar if it has one; returns the cached image when ready. */
     fun avatar(uid: String, hash: String) {
         if (hash.isBlank()) return
         synchronized(this) { if (!requestedAvatars.add(hash)) return }
-        val f = File(dir, "avatar_$hash")
-        session.scope.launch {
-            limit.withPermit {
-                if (!f.exists()) session.download(0u, avatarPath(uid), "", f)
-                decode(f)?.let { bmp -> _avatars.update { it + (hash to bmp) } }
-            }
-        }
+        urgent.trySend(Download(avatarPath(uid), File(dir, "avatar_$hash"), { f -> decode(f)?.let { bmp -> _avatars.update { it + (hash to bmp) } } }))
     }
 
     private var bannerJob: kotlinx.coroutines.Job? = null

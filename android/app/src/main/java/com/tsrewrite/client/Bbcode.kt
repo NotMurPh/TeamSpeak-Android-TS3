@@ -20,6 +20,7 @@ fun renderBbcode(src: String, link: Color): AnnotatedString = buildAnnotatedStri
     val stack = ArrayDeque<String>()
     var pos = 0
     for (m in tags.findAll(src)) {
+        if (m.range.first < pos) continue // inside a [url] that was already written
         appendPlain(src.substring(pos, m.range.first), link)
         pos = m.range.last + 1
         val closing = m.groupValues[1] == "/"
