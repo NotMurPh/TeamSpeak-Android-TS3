@@ -119,21 +119,19 @@ internal fun MyTeamSpeakCard(store: Store, model: CloudIdentityViewModel = viewM
             .background(Ts.Surface, RoundedCornerShape(18.dp)).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("myTeamSpeak (experimental)", style = MaterialTheme.typography.titleSmall, color = Ts.Blue)
-        if (model.email == null) {
-            Text("Sign in to choose identities to download from or upload to your TeamSpeak cloud. Optional; local identities work without an account.",
-                style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
-            Button(enabled = !model.busy, onClick = { loginOpen = true }) { Text("Sign in") }
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(model.email.orEmpty(), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                TextButton(enabled = !model.busy, onClick = { uploadOpen = false; model.logout() }) { Text("Sign out") }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("myTeamSpeak", style = MaterialTheme.typography.titleSmall, color = Ts.Blue)
+                model.email?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Ts.TextDim, maxLines = 1) }
             }
+            if (model.email == null) Button(enabled = !model.busy, onClick = { loginOpen = true }) { Text("Sign in") }
+            else TextButton(enabled = !model.busy, onClick = { uploadOpen = false; model.logout() }) { Text("Sign out") }
+        }
+        if (model.email != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(enabled = !model.busy, onClick = { model.downloadList() }, modifier = Modifier.weight(1f)) { Text("Download identities") }
-                OutlinedButton(enabled = !model.busy && identities.isNotEmpty(), onClick = { uploadOpen = true }, modifier = Modifier.weight(1f)) { Text("Upload identities") }
+                OutlinedButton(enabled = !model.busy, onClick = { model.downloadList() }, modifier = Modifier.weight(1f)) { Text("Download") }
+                OutlinedButton(enabled = !model.busy && identities.isNotEmpty(), onClick = { uploadOpen = true }, modifier = Modifier.weight(1f)) { Text("Upload") }
             }
-            Text("Only selected identities are copied. Existing identities aren't overwritten or deleted.", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
         }
         if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         model.error?.let { Text(it, color = Ts.Red, style = MaterialTheme.typography.bodySmall) }
@@ -147,17 +145,15 @@ internal fun MyTeamSpeakCard(store: Store, model: CloudIdentityViewModel = viewM
         AlertDialog(
             onDismissRequest = { password = ""; otp = ""; loginOpen = false },
             containerColor = Ts.Surface,
-            title = { Text("Sign in to myTeamSpeak") },
+            title = { Text("myTeamSpeak") },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(email, { email = it }, label = { Text("Email") }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
                     OutlinedTextField(password, { password = it }, label = { Text("Password") }, singleLine = true,
                         visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
-                    OutlinedTextField(otp, { otp = it.filter(Char::isDigit).take(8) }, label = { Text("2FA code (if enabled)") }, singleLine = true,
+                    OutlinedTextField(otp, { otp = it.filter(Char::isDigit).take(8) }, label = { Text("2FA code (optional)") }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword))
-                    Text("Your password isn't saved. The session lasts until you sign out or the app closes. Recovery and account resets must be handled in the official client.",
-                        style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
                 }
             },
             confirmButton = {
@@ -171,7 +167,7 @@ internal fun MyTeamSpeakCard(store: Store, model: CloudIdentityViewModel = viewM
     }
 
     if (uploadOpen) {
-        CloudSelectionDialog("Upload identities", "Choose identities to add to myTeamSpeak. Identities already there will be skipped.",
+        CloudSelectionDialog("Upload identities",
             identities.map { CloudSelection(it.id, it.name, runCatching { identityUid(it.data) }.getOrDefault("Invalid identity")) },
             "Upload", onDismiss = { uploadOpen = false }) { selected ->
             uploadOpen = false
@@ -180,7 +176,7 @@ internal fun MyTeamSpeakCard(store: Store, model: CloudIdentityViewModel = viewM
     }
     model.remote?.let { remote ->
         val existing = identities.mapNotNull { runCatching { identityUid(it.data) }.getOrNull() }.toSet()
-        CloudSelectionDialog("Download identities", "Choose identities to add to this phone.",
+        CloudSelectionDialog("Download identities",
             remote.map { CloudSelection(it.id, it.name, if (it.uid in existing) "Already on this phone" else it.uid, it.uid !in existing) },
             "Download", onDismiss = model::dismissDownload) { selected -> model.download(store, selected) }
     }
@@ -189,7 +185,7 @@ internal fun MyTeamSpeakCard(store: Store, model: CloudIdentityViewModel = viewM
 private data class CloudSelection(val id: String, val name: String, val detail: String, val enabled: Boolean = true)
 
 @Composable
-private fun CloudSelectionDialog(title: String, explanation: String, items: List<CloudSelection>, action: String,
+private fun CloudSelectionDialog(title: String, items: List<CloudSelection>, action: String,
     onDismiss: () -> Unit, onConfirm: (Set<String>) -> Unit) {
     var selected by remember { mutableStateOf(emptySet<String>()) }
     val valid = selected.intersect(items.filter { it.enabled }.map { it.id }.toSet())
@@ -197,8 +193,7 @@ private fun CloudSelectionDialog(title: String, explanation: String, items: List
         onDismissRequest = onDismiss, containerColor = Ts.Surface, title = { Text(title) },
         text = {
             Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
-                Text(explanation, style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
-                if (items.isEmpty()) Text("No cloud identities found.", modifier = Modifier.padding(top = 12.dp))
+                if (items.isEmpty()) Text("No cloud identities found.")
                 items.forEach { item ->
                     fun toggle() { selected = if (item.id in selected) selected - item.id else selected + item.id }
                     Row(Modifier.fillMaxWidth().clickable(enabled = item.enabled) { toggle() }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -1,5 +1,16 @@
 [
   {
+    "build": 21,
+    "date": "2026-10-18",
+    "title": "Simpler identities",
+    "changes": [
+      ["improved", "Tap an identity to make it the default. Hold it for rename, nickname, security level and export."],
+      ["improved", "Each identity has its own delete button."],
+      ["improved", "The myTeamSpeak section is shorter, without the extra explanations."],
+      ["improved", "The identity files section is gone."]
+    ]
+  },
+  {
     "build": 20,
     "date": "2026-10-18",
     "title": "myTeamSpeak identities",
