@@ -1,5 +1,14 @@
 [
   {
+    "build": 17,
+    "date": "2026-10-18",
+    "title": "Identity sync",
+    "changes": [
+      ["new", "Upload and download identities on the Identities page: pick which ones, and keep the file on Google Drive or anywhere else."],
+      ["new", "Download also reads TS3 identity exports and app backups."]
+    ]
+  },
+  {
     "build": 16,
     "date": "2026-10-18",
     "title": "Earbuds mic by default again",
