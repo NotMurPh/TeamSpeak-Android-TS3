@@ -2,13 +2,17 @@ package com.tsrewrite.client.ui
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,11 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,7 +58,6 @@ private fun installedBuild(context: Context): Int =
     (context.packageManager.getPackageInfo(context.packageName, 0).versionCode - 1000).coerceAtLeast(0)
 
 /** Top-bar button for the patch notes; a dot marks notes not opened since the last update. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatchNotesButton() {
     val context = LocalContext.current
@@ -73,26 +74,30 @@ fun PatchNotesButton() {
         }
     }
     if (open) {
-        ModalBottomSheet(onDismissRequest = { open = false }, containerColor = Ts.Bg) {
-            PatchNotes(releases, installedBuild(context))
+        // A dialog, not a bottom sheet: in a sheet, scrolling the list and dragging the sheet fight each other.
+        Dialog(onDismissRequest = { open = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+            PatchNotes(releases, installedBuild(context)) { open = false }
         }
     }
 }
 
 @Composable
-private fun PatchNotes(releases: List<Release>, installed: Int) {
-    LazyColumn(
-        Modifier.fillMaxWidth().heightIn(max = 640.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            Column(Modifier.padding(start = 4.dp, bottom = 4.dp)) {
+private fun PatchNotes(releases: List<Release>, installed: Int, onClose: () -> Unit) {
+    Column(Modifier.fillMaxWidth(0.94f).fillMaxHeight(0.85f).clip(RoundedCornerShape(28.dp)).background(Ts.Bg)) {
+        Row(Modifier.fillMaxWidth().padding(start = 20.dp, top = 16.dp, end = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
                 Text("What's new", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 Text("Changes in each version of TS Client", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
             }
+            IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, "Close", tint = Ts.TextDim) }
         }
-        items(releases, key = { it.build }) { r -> ReleaseCard(r, current = r.build == installed) }
+        LazyColumn(
+            Modifier.fillMaxWidth().weight(1f),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(releases, key = { it.build }) { r -> ReleaseCard(r, current = r.build == installed) }
+        }
     }
 }
 

@@ -1,5 +1,14 @@
 [
   {
+    "build": 19,
+    "date": "2026-10-18",
+    "title": "Smoother What's new",
+    "changes": [
+      ["fixed", "What's new scrolls smoothly; it opens in the middle of the screen."],
+      ["improved", "The compact update dialog is back, with buttons that fit on one line."]
+    ]
+  },
+  {
     "build": 18,
     "date": "2026-10-18",
     "title": "Quicker update checks",

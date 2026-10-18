@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -63,8 +64,8 @@ fun UpdateButton(updater: Updater) {
         }
     }
     if (open) {
-        Dialog(onDismissRequest = { open = false }) {
-            Box(Modifier.clip(RoundedCornerShape(28.dp)).background(Ts.Surface)) { UpdateCard(updater) }
+        Dialog(onDismissRequest = { open = false }, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+            Box(Modifier.fillMaxWidth(0.94f).clip(RoundedCornerShape(24.dp)).background(Ts.Surface)) { UpdateCard(updater) }
         }
     }
 }
@@ -84,43 +85,50 @@ fun UpdateCard(updater: Updater, modifier: Modifier = Modifier) {
     fun install() { if (updater.ensureInstallAllowed()) updater.downloadAndInstall(info) }
 
     Column(
-        modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier.fillMaxWidth().padding(start = 18.dp, top = 10.dp, end = 8.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(Modifier.size(56.dp).background(Ts.Blue.copy(alpha = 0.15f), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(Icons.Rounded.Download, null, tint = Ts.Blue, modifier = Modifier.size(28.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.Download, null, tint = Ts.Blue)
+            Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                Text("Update available", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                Text("${updater.installedVersion} → ${com.tsrewrite.client.displayVersion(info.versionName)}", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
+            }
+            if (state !is UpdateState.Downloading && state !is UpdateState.Installing) {
+                IconButton(onClick = updater::dismiss) { Icon(Icons.Rounded.Close, "Later", tint = Ts.TextDim) }
+            }
         }
-        Spacer(Modifier.height(14.dp))
-        Text("Update available", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Text("${updater.installedVersion}  →  ${com.tsrewrite.client.displayVersion(info.versionName)}",
-            style = MaterialTheme.typography.bodyMedium, color = Ts.TextDim, modifier = Modifier.padding(top = 4.dp))
-        Spacer(Modifier.height(20.dp))
-        val wide = Modifier.fillMaxWidth().height(48.dp)
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.padding(end = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // One line each and the same height, side by side.
+            val button = Modifier.height(46.dp)
             when (val s = state) {
                 is UpdateState.Downloading -> {
                     LinearProgressIndicator(progress = { s.progress }, Modifier.fillMaxWidth().height(6.dp).clip(CircleShape), color = Ts.Blue, trackColor = Ts.SurfaceHigh)
                     Text("Downloading… ${(s.progress * 100).toInt()}%", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
                 }
                 is UpdateState.Installing -> {
-                    OutlinedButton(onClick = ::install, wide) { Text("Show install prompt again") }
+                    OutlinedButton(onClick = ::install, button.fillMaxWidth()) { Text("Show install prompt again") }
                 }
                 is UpdateState.SavedToDownloads -> {
                     Text("Saving to your Downloads folder. Tap the finished download notification to install it.",
-                        style = MaterialTheme.typography.bodySmall, color = Ts.TextDim, textAlign = TextAlign.Center)
-                    OutlinedButton(onClick = ::install, wide) { Text("Install in the app instead") }
+                        style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
+                    OutlinedButton(onClick = ::install, button.fillMaxWidth()) { Text("Install in the app instead") }
                 }
                 else -> {
-                    if (s is UpdateState.Failed) Text(s.message, style = MaterialTheme.typography.bodySmall, color = Ts.Red, textAlign = TextAlign.Center)
+                    if (s is UpdateState.Failed) Text(s.message, style = MaterialTheme.typography.bodySmall, color = Ts.Red)
                     if (s is UpdateState.Available && !s.sameKey) {
                         Text("This copy is signed with a different key, so Android can't update it in place. Export a backup in Settings, uninstall, then install the downloaded file.",
-                            style = MaterialTheme.typography.bodySmall, color = Ts.TextDim, textAlign = TextAlign.Center)
+                            style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
                     }
-                    Button(onClick = ::install, wide, colors = ButtonDefaults.buttonColors(containerColor = Ts.Blue, contentColor = Color.White)) {
-                        Text(if (s is UpdateState.Failed) "Try again" else "Update now", fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(onClick = { updater.saveToDownloads(info) }, button.weight(1f),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
+                            Text("Save to Downloads", maxLines = 1, softWrap = false)
+                        }
+                        Button(onClick = ::install, button.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Ts.Blue, contentColor = Color.White)) {
+                            Text(if (s is UpdateState.Failed) "Retry" else "Update", fontWeight = FontWeight.SemiBold, maxLines = 1)
+                        }
                     }
-                    OutlinedButton(onClick = { updater.saveToDownloads(info) }, wide) { Text("Save to Downloads") }
-                    TextButton(onClick = updater::dismiss) { Text("Later", color = Ts.TextDim) }
                 }
             }
         }
