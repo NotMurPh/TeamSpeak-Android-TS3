@@ -1,5 +1,13 @@
 [
   {
+    "build": 18,
+    "date": "2026-10-18",
+    "title": "Quicker update checks",
+    "changes": [
+      ["fixed", "New versions show up promptly even after your connection changes, for example when a VPN turns off."]
+    ]
+  },
+  {
     "build": 17,
     "date": "2026-10-18",
     "title": "Identity sync",

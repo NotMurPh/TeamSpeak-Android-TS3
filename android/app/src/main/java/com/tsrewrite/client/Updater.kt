@@ -69,7 +69,9 @@ class Updater(private val context: Context) {
         // An update already on offer is re-checked too, so a release published since then replaces it.
         val offered = _state.value is UpdateState.Available
         if (!manual) {
-            if (_state.value != UpdateState.Idle && _state.value != UpdateState.UpToDate && !offered) return
+            // Not while an update is being fetched or installed; after a failed check, try again quietly.
+            val s = _state.value
+            if (s is UpdateState.Downloading || s is UpdateState.Installing || s is UpdateState.SavedToDownloads || s == UpdateState.Checking) return
             if (System.currentTimeMillis() - lastCheck < 10_000) return
         }
         lastCheck = System.currentTimeMillis()
@@ -236,7 +238,8 @@ class Updater(private val context: Context) {
 
     private fun open(url: String): HttpURLConnection =
         (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 15_000; readTimeout = 30_000
+            // Short: a connection that dies (e.g. a VPN switching off) must not hold up the next check for long.
+            connectTimeout = 8_000; readTimeout = 15_000
             setRequestProperty("User-Agent", "TS-Client/${installedVersion}")
             if (responseCode !in 200..299) { disconnect(); error("server answered $responseCode") }
         }
