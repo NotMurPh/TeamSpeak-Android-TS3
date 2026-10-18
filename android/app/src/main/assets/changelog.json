@@ -1,5 +1,13 @@
 [
   {
+    "build": 14,
+    "date": "2026-10-18",
+    "title": "Less text while updating",
+    "changes": [
+      ["improved", "The update dialog no longer repeats what Android's install prompt already says."]
+    ]
+  },
+  {
     "build": 13,
     "date": "2026-10-18",
     "title": "Tidier update button",

@@ -99,7 +99,6 @@ fun UpdateCard(updater: Updater, modifier: Modifier = Modifier) {
                     Text("Downloading… ${(s.progress * 100).toInt()}%", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
                 }
                 is UpdateState.Installing -> {
-                    Text("Confirm the install in the Android prompt.", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
                     OutlinedButton(onClick = ::install, Modifier.fillMaxWidth()) { Text("Show install prompt again") }
                 }
                 is UpdateState.SavedToDownloads -> {
