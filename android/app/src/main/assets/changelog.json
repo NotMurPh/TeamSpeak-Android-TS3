@@ -1,5 +1,14 @@
 [
   {
+    "build": 15,
+    "date": "2026-10-18",
+    "title": "A nicer update dialog",
+    "changes": [
+      ["improved", "The update dialog has clear, full-width buttons."],
+      ["improved", "Updating always installs the newest version, even one published after the update was offered."]
+    ]
+  },
+  {
     "build": 14,
     "date": "2026-10-18",
     "title": "Less text while updating",

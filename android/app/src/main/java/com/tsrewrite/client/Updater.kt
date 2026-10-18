@@ -66,34 +66,47 @@ class Updater(private val context: Context) {
      */
     fun check(manual: Boolean = false) {
         if (job?.isActive == true) return
+        // An update already on offer is re-checked too, so a release published since then replaces it.
+        val offered = _state.value is UpdateState.Available
         if (!manual) {
-            if (_state.value != UpdateState.Idle && _state.value != UpdateState.UpToDate) return
+            if (_state.value != UpdateState.Idle && _state.value != UpdateState.UpToDate && !offered) return
             if (System.currentTimeMillis() - lastCheck < 10_000) return
         }
         lastCheck = System.currentTimeMillis()
         job = scope.launch {
-            _state.value = UpdateState.Checking
+            if (!offered) _state.value = UpdateState.Checking
             _state.value = try {
                 val info = fetchInfo()
                 if (info.versionCode > installedCode()) UpdateState.Available(info, info.certificateSha256 == installedCertificate())
                 else { dir.deleteRecursively(); UpdateState.UpToDate }
             } catch (e: Exception) {
                 Log.w(TAG, "update check", e)
-                if (manual) UpdateState.Failed("Couldn't check for updates: ${e.message ?: e.javaClass.simpleName}", null)
-                else UpdateState.Idle
+                when {
+                    offered -> _state.value // keep offering what was found
+                    manual -> UpdateState.Failed("Couldn't check for updates: ${e.message ?: e.javaClass.simpleName}", null)
+                    else -> UpdateState.Idle
+                }
             }
         }
     }
 
-    /** Downloads into the app's cache, verifies the checksum and hands the APK to Android's installer. */
-    fun downloadAndInstall(info: UpdateInfo) {
-        if (job?.isActive == true) return
+    /**
+     * Downloads into the app's cache, verifies the checksum and hands the APK to Android's installer.
+     * Always the newest release: one published after [info] was found is taken instead.
+     */
+    fun downloadAndInstall(found: UpdateInfo) {
+        job?.cancel() // a background re-check may be running; the download fetches the newest itself
         job = scope.launch {
+            var info = found
             try {
+                _state.value = UpdateState.Downloading(info, 0f)
+                runCatching { fetchInfo() }.getOrNull()?.takeIf { it.versionCode > info.versionCode }?.let { info = it }
                 val apk = File(dir, "update-${info.versionCode}.apk")
                 if (!apk.isFile || sha256(apk) != info.sha256) download(info, apk)
                 _state.value = UpdateState.Installing(info)
                 install(apk)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e // replaced by a newer tap; that job owns the state now
             } catch (e: Exception) {
                 Log.w(TAG, "update download", e)
                 _state.value = UpdateState.Failed("Update failed: ${e.message ?: e.javaClass.simpleName}", info)
