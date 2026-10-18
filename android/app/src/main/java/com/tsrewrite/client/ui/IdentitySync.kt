@@ -71,15 +71,15 @@ fun IdentitySyncCard(store: Store) {
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).background(Ts.Surface, RoundedCornerShape(18.dp)).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("Sync", style = MaterialTheme.typography.titleSmall, color = Ts.Blue, fontWeight = FontWeight.SemiBold)
+        Text("Identity files", style = MaterialTheme.typography.titleSmall, color = Ts.Blue, fontWeight = FontWeight.SemiBold)
         Text("Keep identities in a file on Google Drive or anywhere else, and bring them to another phone.",
             style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(onClick = { uploadPick = true }, Modifier.weight(1f)) {
-                Icon(Icons.Rounded.CloudUpload, null); Text("Upload", Modifier.padding(start = 8.dp))
+                Icon(Icons.Rounded.CloudUpload, null); Text("Export file", Modifier.padding(start = 8.dp))
             }
             OutlinedButton(onClick = { opener.launch(arrayOf("application/json", "text/*", "application/octet-stream")) }, Modifier.weight(1f)) {
-                Icon(Icons.Rounded.CloudDownload, null); Text("Download", Modifier.padding(start = 8.dp))
+                Icon(Icons.Rounded.CloudDownload, null); Text("Import file", Modifier.padding(start = 8.dp))
             }
         }
     }
@@ -87,7 +87,7 @@ fun IdentitySyncCard(store: Store) {
     if (uploadPick) {
         val all = identities
         PickDialog(
-            title = "Upload identities",
+            title = "Export identities",
             note = "Identities are your accounts on servers: keep the file private.",
             items = all.map { it to null }, initiallyChecked = all.toSet(), confirm = "Choose file",
             onDismiss = { uploadPick = false },
@@ -101,7 +101,7 @@ fun IdentitySyncCard(store: Store) {
         val have = identities.mapNotNull { uidOf(it.data) }.toSet()
         val items = list.map { it to (if (uidOf(it.data) in have) "Already on this phone" else null) }
         PickDialog(
-            title = "Download identities", note = null, items = items,
+            title = "Import identities", note = null, items = items,
             initiallyChecked = items.filter { it.second == null }.map { it.first }.toSet(), confirm = "Add",
             onDismiss = { found = null },
         ) { picked ->

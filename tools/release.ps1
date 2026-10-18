@@ -58,7 +58,7 @@ try {
     & .\gradlew.bat --no-daemon --console=plain :app:assembleRelease "-PciVersionCode=$VersionCode" "-PciVersionName=$VersionName"
     if ($LASTEXITCODE -ne 0) {
         # Gradle prints only the first lint error; show them all so one CI run is enough to fix them.
-        Get-ChildItem -Path "app/build/intermediates/lint_intermediate_text_report" -Filter "lint-results-*.txt" -Recurse -ErrorAction SilentlyContinue |
+        Get-ChildItem -Path "app/build/intermediates/lint_intermediate_text_report", "app/build/intermediates/lint_vital_intermediate_text_report" -Filter "lint-results-*.txt" -Recurse -ErrorAction SilentlyContinue |
             ForEach-Object { Get-Content -LiteralPath $_.FullName }
         throw "Gradle release lint/build failed."
     }

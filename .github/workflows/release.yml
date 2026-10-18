@@ -117,6 +117,18 @@ jobs:
           $keystore = Join-Path $env:RUNNER_TEMP "android-release.jks"
           if (Test-Path -LiteralPath $keystore) { Remove-Item -LiteralPath $keystore -Force }
 
+      - name: Upload release lint reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: lint-release-${{ github.run_attempt }}
+          path: |
+            android/app/build/reports/lint-results-*
+            android/app/build/intermediates/lint_intermediate_text_report/**/lint-results-*.txt
+            android/app/build/intermediates/lint_vital_intermediate_text_report/**/lint-results-*.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Transfer verified public assets
         id: assets
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -154,13 +166,25 @@ jobs:
           yes | "$sdkmanager" --licenses > /dev/null || true
           "$sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" > /dev/null
 
-      - name: Lint
+      - name: Lint and unit tests
         working-directory: android
         run: |
-          ./gradlew --no-daemon --console=plain :app:lintDebug || {
+          ./gradlew --no-daemon --console=plain :app:lintDebug :app:testDebugUnitTest || {
             cat app/build/intermediates/lint_intermediate_text_report/debug/*/lint-results-debug.txt
             exit 1
           }
+
+      - name: Upload debug lint reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: lint-debug-${{ github.run_attempt }}
+          path: |
+            android/app/build/reports/lint-results-*
+            android/app/build/intermediates/lint_intermediate_text_report/**/lint-results-*.txt
+            android/app/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: ignore
+          retention-days: 7
 
   publish:
     needs: [build, lint]

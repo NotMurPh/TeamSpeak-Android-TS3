@@ -67,6 +67,7 @@ fun IdentitiesScreen(store: Store, onBack: () -> Unit) {
         IconButton(onClick = { store.upsertIdentity(Identity(name = "Identity ${identities.size + 1}", data = createIdentity())) }) { Icon(Icons.Default.Add, "New identity") }
     }) { pad ->
         LazyColumn(Modifier.padding(pad)) {
+            item(key = "myteamspeak") { MyTeamSpeakCard(store) }
             item(key = "sync") { IdentitySyncCard(store) }
             items(identities, key = { it.id }) { i ->
                 val level = remember(i.data) { runCatching { identityLevel(i.data).toInt() }.getOrDefault(-1) }

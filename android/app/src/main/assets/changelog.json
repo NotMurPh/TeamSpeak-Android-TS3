@@ -1,5 +1,15 @@
 [
   {
+    "build": 20,
+    "date": "2026-10-18",
+    "title": "myTeamSpeak identities",
+    "changes": [
+      ["new", "Optional myTeamSpeak sign-in on the Identities page, with selection dialogs for cloud downloads and uploads. This integration is experimental and still needs live-account verification."],
+      ["improved", "File-based identity transfers are now clearly labeled Import file and Export file."],
+      ["improved", "Cloud transfers skip existing identities rather than overwriting them. Passwords and cloud sessions are not saved to disk."]
+    ]
+  },
+  {
     "build": 19,
     "date": "2026-10-18",
     "title": "Smoother What's new",

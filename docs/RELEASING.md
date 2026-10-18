@@ -1,8 +1,8 @@
 # Android Release Maintenance
 
-Every push to `main` runs `.github/workflows/release.yml`. A successful run publishes a new release, not merely a workflow artifact. Failed tests, lint, signing, or verification block publication. There is no path filter, workflow-wide cancellation, or in-app updater.
+Releases normally use `tools/publish.ps1` locally. `.github/workflows/release.yml` is the optional manual Actions alternative on `main`. A successful run publishes a new release, not merely a workflow artifact. Failed tests, lint, signing, or verification block publication.
 
-Manual `workflow_dispatch` is also available for recovery on `main`; other refs are skipped. A manual dispatch creates a new run number/version. Rerun an existing workflow when the same version code and tag must be retained.
+Use `workflow_dispatch` on `main`; other refs are skipped. The numbering step selects one above the highest existing `build-N` release, including local releases. Rerunning only failed jobs retains the successful numbering job's output; rerunning all jobs selects the number again.
 
 ## First Installation With the Release Key
 
@@ -21,7 +21,7 @@ The repository must have these Actions secrets:
 | `ANDROID_KEY_ALIAS` | Dedicated release key alias |
 | `ANDROID_KEY_PASSWORD` | Key password |
 
-The workflow decodes the keystore under `RUNNER_TEMP`, exposes its path as `ANDROID_KEYSTORE_PATH` only during the signing step, and removes it in both `finally` and an always-run cleanup step. Only the four public assets are uploaded. Passwords are passed through environment variables, never Gradle properties or command-line password arguments. The certificate fingerprint is public, not a secret.
+The workflow decodes the keystore under `RUNNER_TEMP`, exposes its path as `ANDROID_KEYSTORE_PATH` only during the signing step, and removes it in both `finally` and an always-run cleanup step. Only the four public assets are transferred to publication; lint reports are uploaded separately for diagnosis. Passwords are passed through environment variables, never Gradle properties or command-line password arguments. The certificate fingerprint is public, not a secret.
 
 Any resolved Gradle task whose name contains `release`, including `lintRelease`, `assembleRelease`, `bundleRelease`, or an aggregate build that includes release tasks, requires all four signing environment variables and an existing keystore file. There is no fallback to debug signing. Ordinary debug tasks need none of these variables and retain standard debug signing.
 
@@ -45,6 +45,8 @@ All project Cargo build, test, and binding-generation calls use `--locked`. The 
 
 The dev profile optimizes `audiopus_sys` so its bundled Opus uses CMake's `RelWithDebInfo` rather than `Debug`. This keeps the Windows C runtime consistent with Rust's release CRT while retaining the host DLL's UniFFI metadata.
 
+UniFFI 0.32.2 discovers the crate-local `core/uniffi.toml` through Cargo metadata. Its `[bindings.kotlin] android = true` selects Android bindings: API 34+ uses `android.system.SystemCleaner`, while older devices use JNA's cleaner. Do not pass this crate-local file with `--config`: that flag now expects global `[defaults]` or `[crates.<name>]` configuration. Regenerate rather than hand-editing the Kotlin cleaner or suppressing `NewApi` findings.
+
 Actions are pinned to the following official release commits, verified during peer review:
 
 | Action | Release | Commit |
@@ -58,25 +60,25 @@ When updating an action, independently verify its official release commit and re
 
 ## Versions And Assets
 
-The base application version is `0.1.0`. For workflow run number `N`:
+The base application version is `0.1.0`. For the selected release number `N`:
 
 | Field | Value |
 | --- | --- |
 | Tag | `build-N` |
 | Gradle `ciVersionCode` | `1000 + N` |
-| Gradle `ciVersionName` | `0.1.0+build.N` |
+| Gradle `ciVersionName` | `0.1.N` |
 | APK filename | `teamspeak-android-arm64-v8a.apk` |
 
-The run attempt is deliberately excluded from the version and tag. Rerunning a workflow retains the version code. Keep this workflow's run-number lineage: renaming/replacing it or migrating repositories can reset numbering and require an explicit version offset migration above all previously shipped codes. Android version codes must not exceed 2100000000. Local Gradle defaults remain code `1`, name `0.1.0`; use CI properties for installable release upgrades.
+The run attempt is deliberately excluded from the version and tag. Preserve published `build-N` releases so local and Actions numbering stay above previously shipped codes. Avoid overlapping local and Actions releases: both can select the same next number. Android version codes must not exceed 2100000000. Local Gradle defaults remain code `1`, name `0.1.0`; use CI properties for installable release upgrades.
 
 Each release contains exactly these public assets:
 
 - `teamspeak-android-arm64-v8a.apk`: the verified, dedicated-key-signed APK.
 - `third-party-licenses.zip`: the entire collected notice bundle under `licenses/`, matching the bundle embedded in the APK.
 - `SHA256SUMS`: lowercase SHA-256 checksums for the APK, `third-party-licenses.zip`, and `update.json`, using standard two-space filename separators.
-- `update.json`: schema version 1 release metadata, not an updater implementation.
+- `update.json`: schema version 1 release metadata consumed by the in-app updater.
 
-`update.json` fields are `schemaVersion` (integer 1), `versionCode` (integer), `versionName`, `applicationId`, `minSdk` (integer 26), `abi` (`arm64-v8a`), `commit` (full source SHA), `sha256` (APK digest), `certificateSha256` (APK signing certificate digest), and `downloadUrl`. Both digests are lowercase hexadecimal without colons. The URL is tag-specific, `https://github.com/OWNER/REPO/releases/download/build-N/teamspeak-android-arm64-v8a.apk`, never a mutable `latest/download` URL. SHA256SUMS is not a detached signature; the Android signing certificate is the installation trust boundary. Any future updater needs its own explicit trust and verification design.
+`update.json` fields are `schemaVersion` (integer 1), `versionCode` (integer), `versionName`, `applicationId`, `minSdk` (integer 26), `abi` (`arm64-v8a`), `commit` (full source SHA), `sha256` (APK digest), `certificateSha256` (APK signing certificate digest), and `downloadUrl`. Both digests are lowercase hexadecimal without colons. The URL is tag-specific, `https://github.com/NotMurPh/teamspeak-android-ts3/releases/download/build-N/teamspeak-android-arm64-v8a.apk`, never a mutable `latest/download` URL. SHA256SUMS is not a detached signature; the Android signing certificate is the installation trust boundary. Updater trust and verification require separate review from this release pipeline.
 
 ## License Bundle
 
@@ -92,7 +94,7 @@ This integration is **not a complete resolved Gradle release-runtime-classpath l
 
 ## Verification And Publication
 
-Before publication the build runs `cargo test --locked -p tscore --lib`, compares generated bindings, collects the license bundle, and runs `:app:lintRelease :app:assembleRelease`. The signing script then verifies:
+Before Actions publication the build runs `cargo test --locked -p tscore --lib`, compares generated bindings, collects the license bundle, and runs `:app:assembleRelease` (including release vital lint). A separate Linux job runs full `:app:lintDebug` without signing credentials or native compilation; both jobs must pass. The signing script then verifies:
 
 - A valid APK signature with exactly one signer, whose SHA-256 fingerprint matches the configured keystore alias.
 - The expected application ID, version code/name, minSdk 26, and only the arm64-v8a native ABI, with a non-debuggable manifest.
@@ -102,7 +104,9 @@ Before publication the build runs `cargo test --locked -p tscore --lib`, compare
 
 The Windows build transfers only public files to the Linux publication job using the exact artifact ID from that attempt. The publication job rechecks checksums and metadata, creates a draft targeted at the triggering commit, uploads all assets, and only then publishes it with automatic latest selection disabled. Existing tags must resolve to the triggering commit. A failed upload leaves a recoverable draft; a rerun may replace assets only while that release is still a draft. A published `build-N` is never overwritten, deleted, retagged, or repackaged by the workflow. This is workflow-enforced immutability; it does not enable or replace GitHub's repository-level immutable-release setting.
 
-Publication is independent for every push. Only latest promotion is serialized across runs with `cancel-in-progress: false`. Each promotion scans all published, non-prerelease `build-N` releases and chooses the highest numeric N, regardless of which build finished last. GitHub may coalesce pending promotion jobs, but it cannot cancel build/publication jobs through this group. Thus an older build finishing late cannot move latest backward. Rerunning an already-published build leaves its assets unchanged and still runs promotion against the highest published build. If publication or promotion fails due to transient API errors, rerun the failed jobs; do not delete a published release to retry it.
+Publication jobs are serialized per selected release number; latest promotion is serialized across runs with `cancel-in-progress: false`. Each promotion scans all published, non-prerelease `build-N` releases and chooses the highest numeric N, regardless of which build finished last. GitHub may coalesce pending promotion jobs, but it cannot cancel build/publication jobs through this group. Thus an older build finishing late cannot move latest backward. Rerunning publication with an already-published number leaves its assets unchanged and still runs promotion against the highest published build. If publication or promotion fails due to transient API errors, rerun the failed jobs; do not delete a published release to retry it.
+
+Both build and lint jobs upload available lint reports with `if: always()`, under separate `lint-release-<attempt>` and `lint-debug-<attempt>` artifacts retained for seven days. Missing reports are allowed when an earlier step failed. Only report paths are included, never the keystore or whole build directory. The lint job prints the intermediate text report on failure; `tools/release.ps1` prints full and vital lint text reports on a failed build. AGP 9.4 already generates text reports; `textOutput = file("stdout")` creates a file named `stdout`, not console output.
 
 ## Local Maintenance
 
@@ -111,8 +115,9 @@ Use Windows with Java 21, Visual Studio x64 C++ tools, CMake/Ninja, the pinned S
 ```powershell
 ./tools/build-core.ps1
 cargo test --locked -p tscore --lib
-./tools/release.ps1 -VersionCode 1001 -VersionName '0.1.0+build.1' `
-    -Commit (git rev-parse HEAD) -Repository 'OWNER/REPO' -Tag 'build-1'
+./android/gradlew.bat -p android :app:lintDebug
+./tools/release.ps1 -VersionCode 1001 -VersionName '0.1.1' `
+    -Commit (git rev-parse HEAD) -Repository 'NotMurPh/teamspeak-android-ts3' -Tag 'build-1'
 ```
 
 `tools/release.ps1` fetches locked Cargo sources, collects notices, builds, verifies, and writes four public assets to `dist`; it does not publish or call the GitHub API. It does not build Rust itself: run the native script first to avoid packaging stale libraries. Use real run metadata for any production release, not these example values. Normal local debug development can continue with `android/gradlew.bat :app:assembleDebug` without release signing variables or a generated license bundle.

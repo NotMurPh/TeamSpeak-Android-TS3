@@ -76,4 +76,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.lifecycle:lifecycle-process:2.11.0")
     implementation("net.java.dev.jna:jna:5.19.1@aar")
+    testImplementation("junit:junit:4.13.2")
 }

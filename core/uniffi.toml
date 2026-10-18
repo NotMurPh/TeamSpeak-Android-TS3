@@ -1,2 +1,3 @@
+# Crate-local configuration, discovered through Cargo metadata (not a --config override).
 [bindings.kotlin]
 android = true
