@@ -2,6 +2,7 @@ package com.tsrewrite.client.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,8 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,37 +29,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tsrewrite.client.UpdateInfo
 import com.tsrewrite.client.UpdateState
 import com.tsrewrite.client.Updater
 
-/** Blue "Update" button for the top bar while a newer release is available; opens [UpdateCard] in a sheet. */
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+/** Blue download icon in the top bar while a newer release is available; opens [UpdateCard] in a dialog. */
 @Composable
 fun UpdateButton(updater: Updater) {
     val state by updater.state.collectAsState()
     var open by remember { mutableStateOf(false) }
-    val label = when (val s = state) {
-        is UpdateState.Available, is UpdateState.SavedToDownloads, is UpdateState.Installing -> "Update"
-        is UpdateState.Downloading -> "${(s.progress * 100).toInt()}%"
-        is UpdateState.Failed -> if (s.info != null) "Update" else null
-        else -> null
+    val shown = when (val s = state) {
+        is UpdateState.Available, is UpdateState.SavedToDownloads, is UpdateState.Installing, is UpdateState.Downloading -> true
+        is UpdateState.Failed -> s.info != null
+        else -> false
     }
-    if (label == null) { open = false; return }
-    Button(
-        onClick = { open = true },
-        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Ts.Blue, contentColor = androidx.compose.ui.graphics.Color.White),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp),
-        modifier = Modifier.padding(end = 4.dp).height(36.dp),
-    ) {
-        Icon(Icons.Default.SystemUpdate, null, Modifier.size(18.dp))
-        Text(label, Modifier.padding(start = 6.dp), fontWeight = FontWeight.SemiBold)
+    if (!shown) { open = false; return }
+    IconButton(onClick = { open = true }) {
+        Box(contentAlignment = Alignment.Center) {
+            // While downloading, a ring around the arrow shows the progress.
+            (state as? UpdateState.Downloading)?.let { d ->
+                CircularProgressIndicator(progress = { d.progress }, Modifier.size(34.dp), color = Ts.Blue, strokeWidth = 2.5.dp, trackColor = Ts.SurfaceHigh)
+            }
+            Icon(Icons.Rounded.Download, "Update available", tint = Ts.Blue)
+        }
     }
     if (open) {
-        androidx.compose.material3.ModalBottomSheet(onDismissRequest = { open = false }, containerColor = Ts.Surface) {
-            UpdateCard(updater, Modifier.padding(start = 8.dp, end = 8.dp, bottom = 28.dp))
+        Dialog(onDismissRequest = { open = false }) {
+            Box(Modifier.clip(RoundedCornerShape(24.dp)).background(Ts.Surface).padding(10.dp)) { UpdateCard(updater) }
         }
     }
 }
@@ -81,7 +83,7 @@ fun UpdateCard(updater: Updater, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.SystemUpdate, null, tint = Ts.Blue)
+            Icon(Icons.Rounded.Download, null, tint = Ts.Blue)
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
                 Text("Update available", fontWeight = FontWeight.Medium)
                 Text("${updater.installedVersion} → ${com.tsrewrite.client.displayVersion(info.versionName)}", style = MaterialTheme.typography.bodySmall, color = Ts.TextDim)

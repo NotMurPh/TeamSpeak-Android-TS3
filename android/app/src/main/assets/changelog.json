@@ -1,5 +1,13 @@
 [
   {
+    "build": 13,
+    "date": "2026-10-18",
+    "title": "Tidier update button",
+    "changes": [
+      ["improved", "A new version shows as a small blue download icon; its options open in the middle of the screen."]
+    ]
+  },
+  {
     "build": 12,
     "date": "2026-10-18",
     "title": "Cleaner versions, faster releases",
