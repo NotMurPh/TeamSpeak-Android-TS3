@@ -1,5 +1,13 @@
 [
   {
+    "build": 16,
+    "date": "2026-10-18",
+    "title": "Earbuds mic by default again",
+    "changes": [
+      ["fixed", "Bluetooth earbuds use their own mic and speakers by default again; you can switch the mic off in Settings."]
+    ]
+  },
+  {
     "build": 15,
     "date": "2026-10-18",
     "title": "A nicer update dialog",

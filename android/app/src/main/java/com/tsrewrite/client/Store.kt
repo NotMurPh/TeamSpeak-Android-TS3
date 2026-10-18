@@ -75,7 +75,7 @@ data class Settings(
     val lowLatencyWifi: Boolean = true,
     val playbackAgc: Boolean = true,
     /** Talk through Bluetooth earbuds' mic; Bluetooth then drops what you hear to call quality too. */
-    val btHeadsetMic: Boolean = false,
+    val btHeadsetMic: Boolean = true,
 )
 
 /** Bookmarks, identities and settings, persisted as JSON in shared preferences. */
@@ -94,6 +94,11 @@ class Store(private val context: Context) {
         if (!prefs.getBoolean("qualityV2", false)) {
             updateSettings(_settings.value.copy(bitrate = 96000))
             prefs.edit().putBoolean("qualityV2", true).apply()
+        }
+        // Earbuds use their own mic by default, like call apps; v0.1.10-v0.1.15 had it off and saved that.
+        if (!prefs.getBoolean("btMicDefaultOn", false)) {
+            updateSettings(_settings.value.copy(btHeadsetMic = true))
+            prefs.edit().putBoolean("btMicDefaultOn", true).apply()
         }
         // Start with ts22.ir in the list, looking as it does after a first visit (once; deleting it is respected).
         if (!prefs.getBoolean("seededTs22", false)) {

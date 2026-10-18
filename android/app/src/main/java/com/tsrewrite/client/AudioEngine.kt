@@ -171,8 +171,8 @@ class AudioEngine(
             return AudioRoute(AudioRoute.Output.HEADSET, false, wired, if (headsetMic) wiredMic else phoneMic,
                 if (headsetMic) "Headphones" else "Headphones · phone mic", true)
         }
-        // Earbud mics are opt-in: earbuds treat an open mic as a call (Galaxy Buds, for one, switch their
-        // noise cancelling for calls), so by default they only play and the phone's mic is used.
+        // Earbuds use their own mic by default, like call apps. Earbuds treat an open mic as a call (Galaxy
+        // Buds, for one, apply their call noise-cancelling settings); turning it off leaves them playback only.
         // LE Audio earbuds: the mic opens alongside the media stream, so both stay high quality without
         // call mode (classic Bluetooth only has a mic on the call link, which drops A2DP).
         val leOut = outs.firstOrNull { it.type == BLE_HEADSET }
