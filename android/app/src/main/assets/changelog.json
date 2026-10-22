@@ -1,5 +1,17 @@
 [
   {
+    "build": 22,
+    "date": "2026-10-22",
+    "title": "Earbuds talk like Discord",
+    "changes": [
+      ["improved", "Earbuds use their own mic in a proper call, like Discord. The phone's call voice processing cleans your voice, so others hear you more clearly."],
+      ["fixed", "The earbuds' call stays put while they're connected, instead of restarting whenever Bluetooth briefly adds or removes a device."],
+      ["fixed", "Announcements and sounds play inside the call, so they don't knock the earbuds out of it."],
+      ["improved", "One \"Use headset mic\" switch for every headset: earbuds, Bluetooth or wired. Headsets without a mic use the phone's. It's on again after this update."],
+      ["new", "The connection notification has mute, deafen and disconnect icons. Mute and deafen turn red while on."]
+    ]
+  },
+  {
     "build": 21,
     "date": "2026-10-18",
     "title": "Simpler identities",

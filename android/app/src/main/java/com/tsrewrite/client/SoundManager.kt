@@ -12,10 +12,26 @@ import uniffi.tscore.LogEvent
 import java.util.Locale
 
 /**
- * Spoken announcements and the TS3 sound pack's poke and message sounds, both on the media stream.
+ * Spoken announcements and the TS3 sound pack's poke and message sounds, both on the media stream, or
+ * on the call stream while voice runs over a Bluetooth call link: media there would make the earbuds
+ * leave the call link for a moment (and switch their noise cancelling back and forth), so, like
+ * Discord, everything plays inside the call.
  * While sound is muted (deafened) nothing plays except the cue for unmuting it.
  */
-class SoundManager(private val context: Context, private val store: Store, private val deafened: () -> Boolean) {
+class SoundManager(
+    private val context: Context,
+    private val store: Store,
+    private val deafened: () -> Boolean,
+    /** Voice runs over a Bluetooth call link; null while a connection's voice route is still being chosen. */
+    private val onCall: () -> Boolean? = { false },
+) {
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /** Runs [block] once the voice route is known (briefly waits while connecting), so it plays on the right stream. */
+    private fun routed(block: () -> Unit, tries: Int = 15) {
+        if (onCall() != null || tries == 0) block() else main.postDelayed({ routed(block, tries - 1) }, 100)
+    }
+
     enum class Cue { CONNECTED, DISCONNECTED, POKE, PRIVATE_MESSAGE, MIC_MUTED, MIC_UNMUTED, SOUND_MUTED, SOUND_UNMUTED }
 
     private var tts: TextToSpeech? = null
@@ -23,6 +39,10 @@ class SoundManager(private val context: Context, private val store: Store, priva
 
     private fun speak(text: String) {
         if (!store.settings.value.announceEvents) return
+        routed({ say(text) })
+    }
+
+    private fun say(text: String) {
         android.util.Log.i(TAG, "speak: $text")
         val t = tts ?: TextToSpeech(context.applicationContext) { status ->
             ttsReady = status == TextToSpeech.SUCCESS
@@ -31,6 +51,7 @@ class SoundManager(private val context: Context, private val store: Store, priva
                 tts?.speak(text, TextToSpeech.QUEUE_FLUSH, Bundle(), null)
             }
         }.also { tts = it }
+        t.setAudioAttributes(attributes())
         // The newest announcement replaces the previous one, so rapid toggles do not pile up.
         if (ttsReady) t.speak(text, TextToSpeech.QUEUE_FLUSH, Bundle(), null)
     }
@@ -39,16 +60,23 @@ class SoundManager(private val context: Context, private val store: Store, priva
      * The TS3 sound pack's samples, played on the same stream as the spoken announcements (media,
      * speech) so they follow the same volume; the poke is levelled to typical TTS loudness.
      */
-    private val pool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
-        AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
-    ).build()
-    private val messageSound = pool.load(context, R.raw.ts_message, 1)
-    private val pokeSound = pool.load(context, R.raw.ts_poke, 1)
+    private fun attributes(call: Boolean = onCall() == true) = AudioAttributes.Builder()
+        .setUsage(if (call) AudioAttributes.USAGE_VOICE_COMMUNICATION else AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
 
-    private fun play(id: Int, volume: Float, what: String) {
+    /** One pool per stream (a pool's stream is fixed), each with the message and poke sounds. */
+    private val pools = listOf(false, true).map { call ->
+        val pool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(attributes(call)).build()
+        Triple(pool, pool.load(context, R.raw.ts_message, 1), pool.load(context, R.raw.ts_poke, 1))
+    }
+
+    private fun play(poke: Boolean, volume: Float, what: String) {
         if (!store.settings.value.playSounds) return
-        android.util.Log.i(TAG, "sound $what")
-        pool.play(id, volume, volume, 1, 0, 1f)
+        routed({
+            android.util.Log.i(TAG, "sound $what")
+            val (pool, message, pokeId) = pools[if (onCall() == true) 1 else 0]
+            pool.play(if (poke) pokeId else message, volume, volume, 1, 0, 1f)
+        })
     }
 
     fun event(cue: Cue, who: String?) {
@@ -63,11 +91,11 @@ class SoundManager(private val context: Context, private val store: Store, priva
             Cue.DISCONNECTED -> speak("Disconnected from server")
             // Like TS3: the sound pack says "you were poked"; messages get its soft chat blip.
             Cue.POKE -> {
-                if (s.announcePokes) play(pokeSound, 0.6f, "poke")
+                if (s.announcePokes) play(true, 0.6f, "poke")
                 if (s.vibrateOnPoke) vibrate()
             }
             Cue.PRIVATE_MESSAGE -> {
-                play(messageSound, 1f, "message")
+                play(false, 1f, "message")
                 if (s.announceMessages) speak("New message from ${spoken(who)}")
             }
             Cue.MIC_MUTED -> if (s.announceSelf) speak("Microphone muted")

@@ -63,7 +63,7 @@ fun humanizeError(f: CommandFailure): String {
 class Session(private val context: Context, private val store: Store) : EventListener {
     val client = TsClient(this)
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    val sounds = SoundManager(context, store) { _outputMuted.value }
+    val sounds = SoundManager(context, store, deafened = { _outputMuted.value }, onCall = { _route.value?.call ?: if (_active.value) null else false })
     val icons = IconStore(context, this)
 
     private val _status = MutableStateFlow(Status.DISCONNECTED to "")
@@ -229,6 +229,19 @@ class Session(private val context: Context, private val store: Store) : EventLis
 
     fun setInputMuted(m: Boolean) { _inputMuted.value = m; fire(client.setInputMuted(m)) }
     fun setOutputMuted(m: Boolean) { _outputMuted.value = m; fire(client.setOutputMuted(m)) }
+
+    /** The mute buttons (voice dock and notification): toggle and play the matching cue. */
+    fun toggleInputMuted() {
+        val m = !_inputMuted.value
+        setInputMuted(m)
+        sounds.event(if (m) SoundManager.Cue.MIC_MUTED else SoundManager.Cue.MIC_UNMUTED, null)
+    }
+
+    fun toggleOutputMuted() {
+        val m = !_outputMuted.value
+        setOutputMuted(m)
+        sounds.event(if (m) SoundManager.Cue.SOUND_MUTED else SoundManager.Cue.SOUND_UNMUTED, null)
+    }
     fun setAway(message: String?) { _away.value = message != null; fire(client.setAway(message)) }
     fun setSpeakerphone(on: Boolean) {
         _speakerphone.value = on

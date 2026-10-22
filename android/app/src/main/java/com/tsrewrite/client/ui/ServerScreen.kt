@@ -73,7 +73,6 @@ import androidx.compose.ui.unit.dp
 import com.tsrewrite.client.ChatKey
 import com.tsrewrite.client.Poke
 import com.tsrewrite.client.Session
-import com.tsrewrite.client.SoundManager
 import com.tsrewrite.client.Store
 import com.tsrewrite.client.renderBbcode
 import kotlinx.coroutines.delay
@@ -317,12 +316,10 @@ private fun VoiceDock(session: Session, store: Store) {
             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
         ) {
             DockButton(if (inMuted) Icons.Rounded.MicOff else Icons.Rounded.Mic, inMuted, if (inMuted) "Unmute microphone" else "Mute microphone") {
-                session.setInputMuted(!inMuted)
-                session.sounds.event(if (inMuted) SoundManager.Cue.MIC_UNMUTED else SoundManager.Cue.MIC_MUTED, null)
+                session.toggleInputMuted()
             }
             DockButton(if (outMuted) Icons.Rounded.HeadsetOff else Icons.Rounded.Headset, outMuted, if (outMuted) "Unmute sound" else "Mute sound") {
-                session.setOutputMuted(!outMuted)
-                session.sounds.event(if (outMuted) SoundManager.Cue.SOUND_UNMUTED else SoundManager.Cue.SOUND_MUTED, null)
+                session.toggleOutputMuted()
             }
             // Push to talk: "Push to talk", "Talking" while held, disabled while muted.
             // Otherwise it is a status display: "Listening", "Talking", "Muted" or "Deafened".

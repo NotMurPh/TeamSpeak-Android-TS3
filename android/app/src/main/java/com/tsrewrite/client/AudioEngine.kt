@@ -55,7 +55,8 @@ data class AudioRoute(
     /** A wired or Bluetooth headset is connected (whether or not this route uses it). */
     val headsetPresent: Boolean = false,
 ) {
-    val key get() = "$output|$call|${device?.id}|${mic?.id}"
+    // By type and address, not id: Android re-creates a Bluetooth device (new id) as its call link comes and goes.
+    val key get() = "$output|$call|${device?.let { "${it.type}:${it.address}" }}|${mic?.let { "${it.type}:${it.address}" }}"
 
     enum class Output { SPEAKER, EARPIECE, HEADSET, BLUETOOTH, NONE }
 }
@@ -83,8 +84,12 @@ class AudioEngine(
 
     private val refreshTask = Runnable { refresh() }
     private val devices = object : AudioDeviceCallback() {
-        override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) = scheduleRefresh()
-        override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) = scheduleRefresh()
+        override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) {
+            Log.i(TAG, "devices added ${added.joinToString { "${it.type}:${it.id}" }}"); scheduleRefresh()
+        }
+        override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) {
+            Log.i(TAG, "devices removed ${removed.joinToString { "${it.type}:${it.id}" }}"); scheduleRefresh()
+        }
     }
 
     fun start() {
@@ -121,9 +126,12 @@ class AudioEngine(
         Log.i(TAG, "route ${r.label} (${r.key})")
         if (routed) applyRoute(r)
         onRoute(r)
-        // On the call link Android already cancels echo (and the headset sits on the ear); elsewhere
-        // WebRTC AEC3 does, fed with exactly what is played.
-        processor = VoiceProcessor(!r.call && play, Denoise.BOTH, true).also { it.setDelayMs(ECHO_DELAY_MS) }
+        // On the call link Android already cancels echo and suppresses noise (tuned for the headset), and
+        // the earbuds clean their mic themselves; stacking WebRTC's suppressor on top of that made voice
+        // sound washed out, so there only RNNoise follows (one suppressor, like Discord's Krisp).
+        // Elsewhere WebRTC AEC3 cancels echo, fed with exactly what is played.
+        processor = VoiceProcessor(!r.call && play, if (r.call) Denoise.RN_NOISE else Denoise.BOTH, true)
+            .also { it.setDelayMs(ECHO_DELAY_MS) }
         val g = ++generation
         if (play) threads += Thread({ playbackLoop(g, r) }, "ts-playback").apply { start() }
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
@@ -166,24 +174,38 @@ class AudioEngine(
             AudioRoute.Output.EARPIECE -> return phone(false)
             else -> {}
         }
+        // A Bluetooth call keeps going while the same headset is connected: its call link coming up adds
+        // and removes devices, and re-routing then would drop and restart the call link, which earbuds
+        // hear as hanging up and calling again (and switch their noise cancelling each time).
+        val current = route
+        if (current != null && current.call && s.useHeadsetMic && wired == null) {
+            val address = current.device?.address
+            val comm = if (Build.VERSION.SDK_INT >= 31) am.availableCommunicationDevices else emptyList()
+            if ((outs.asList() + comm).any { it.address == address && (it.type in BT_VOICE || it.type in BT_MEDIA) }) return current
+        }
+        // One "Use headset mic" switch for every headset: its own mic when it has one, else the phone's.
         if (wired != null) {
             val headsetMic = s.useHeadsetMic && wiredMic != null
             return AudioRoute(AudioRoute.Output.HEADSET, false, wired, if (headsetMic) wiredMic else phoneMic,
                 if (headsetMic) "Headphones" else "Headphones · phone mic", true)
         }
         // Earbuds use their own mic by default, like call apps. Earbuds treat an open mic as a call (Galaxy
-        // Buds, for one, apply their call noise-cancelling settings); turning it off leaves them playback only.
-        // LE Audio earbuds: the mic opens alongside the media stream, so both stay high quality without
-        // call mode (classic Bluetooth only has a mic on the call link, which drops A2DP).
+        // Buds, for one, apply their call noise-cancelling settings); "Use headset mic" off leaves them playback only.
+        // LE Audio earbuds go into a call like Discord does (call mode, the earbuds as communication device):
+        // the phone's call voice processing then cleans their mic, which measured clearer than their plain
+        // mic with our own suppressors (same LC3 32 kHz link either way). What you hear drops to call
+        // quality while the mic is open; that is Bluetooth's two-way link, so "Use headset mic" off restores it.
         val leOut = outs.firstOrNull { it.type == BLE_HEADSET }
         val leMic = ins.firstOrNull { it.type == BLE_HEADSET }
-        if (s.btHeadsetMic && leOut != null && leMic != null) {
+        if (s.useHeadsetMic && leOut != null && leMic != null) {
+            val leVoice = if (Build.VERSION.SDK_INT >= 31) am.availableCommunicationDevices.firstOrNull { it.type == BLE_HEADSET } else null
+            if (leVoice != null) return AudioRoute(AudioRoute.Output.BLUETOOTH, true, leVoice, null, "Bluetooth LE call", true)
             return AudioRoute(AudioRoute.Output.BLUETOOTH, false, leOut, leMic, "Bluetooth LE audio", true)
         }
         // Classic Bluetooth: the buds' mic only exists on the call link (SCO), and Android pauses A2DP
         // while it runs (tested: no A2DP packets go out, even with A2dpSuspended=false), so with the
         // headphone mic on, sound and mic both use the call link.
-        if (btVoice != null && btVoice.type != BLE_HEADSET && (s.btHeadsetMic || btMedia == null)) {
+        if (btVoice != null && btVoice.type != BLE_HEADSET && (s.useHeadsetMic || btMedia == null)) {
             return AudioRoute(AudioRoute.Output.BLUETOOTH, true, btVoice, null, "Bluetooth headset", true)
         }
         if (btMedia != null || btVoice != null) {

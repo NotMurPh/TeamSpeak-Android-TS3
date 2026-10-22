@@ -10,11 +10,14 @@ import android.content.pm.ServiceInfo
 import android.media.session.MediaSession
 import android.os.IBinder
 import android.os.PowerManager
+import android.widget.RemoteViews
 import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -42,6 +45,12 @@ class ConnectionService : Service() {
             app.store.settings.map { it.lowLatencyWifi }.distinctUntilChanged().collect { on -> setWifiLock(on) }
         }
         app.session.startAudio()
+        // Keep the notification's Mute/Deafen buttons in step with the app.
+        scope.launch {
+            app.session.inputMuted.combine(app.session.outputMuted) { a, b -> a to b }.distinctUntilChanged().drop(1).collect {
+                getSystemService(NotificationManager::class.java).notify(1, notification())
+            }
+        }
         // Headset/Bluetooth media button toggles push-to-talk when enabled.
         if (app.store.settings.value.headsetButtonPtt) {
             media = MediaSession(this, "tsclient").apply {
@@ -71,26 +80,67 @@ class ConnectionService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lastStartId = startId
-        // Every startForegroundService() call needs its own startForeground().
-        goForeground()
-        if (intent?.action == ACTION_DISCONNECT) (application as App).session.disconnect()
+        val session = (application as App).session
+        when (intent?.action) {
+            // Taps on the notification's icons: the state flows below repost it at once with the new look.
+            ACTION_DISCONNECT -> session.disconnect()
+            ACTION_MUTE -> session.toggleInputMuted()
+            ACTION_DEAFEN -> session.toggleOutputMuted()
+            else -> {
+                // Every startForegroundService() call needs its own startForeground().
+                goForeground()
+            }
+        }
         return START_NOT_STICKY
     }
 
+    private fun tap(name: String, code: Int) = PendingIntent.getService(this, code,
+        Intent(this, ConnectionService::class.java).setAction(name), PendingIntent.FLAG_IMMUTABLE)
+
+    /** Server and state, with mute / deafen / disconnect icons on the right (red while muted, like the voice dock). */
+    private fun notification(): Notification {
+        val session = (application as App).session
+        val mic = session.inputMuted.value
+        val sound = session.outputMuted.value
+        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val title = session.bookmark?.label?.ifBlank { null } ?: session.bookmark?.address ?: "Connected"
+        val text = when {
+            sound -> "Deafened"
+            mic -> "Microphone muted"
+            else -> "Connected"
+        }
+        val normal = getColor(R.color.notif_icon)
+        val red = getColor(R.color.notif_red)
+        val view = RemoteViews(packageName, R.layout.notification_voice).apply {
+            setTextViewText(R.id.notif_title, title)
+            setTextViewText(R.id.notif_text, text)
+            setImageViewResource(R.id.notif_mute, if (mic) R.drawable.ic_notif_mic_off else R.drawable.ic_notif_mic)
+            setInt(R.id.notif_mute, "setColorFilter", if (mic) red else normal)
+            setContentDescription(R.id.notif_mute, if (mic) "Unmute microphone" else "Mute microphone")
+            setOnClickPendingIntent(R.id.notif_mute, tap(ACTION_MUTE, 2))
+            setImageViewResource(R.id.notif_deafen, if (sound) R.drawable.ic_notif_headset_off else R.drawable.ic_notif_headset)
+            setInt(R.id.notif_deafen, "setColorFilter", if (sound) red else normal)
+            setContentDescription(R.id.notif_deafen, if (sound) "Undeafen" else "Deafen")
+            setOnClickPendingIntent(R.id.notif_deafen, tap(ACTION_DEAFEN, 3))
+            setInt(R.id.notif_disconnect, "setColorFilter", red)
+            setOnClickPendingIntent(R.id.notif_disconnect, tap(ACTION_DISCONNECT, 1))
+        }
+        return Notification.Builder(this, CHANNEL)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(Notification.DecoratedCustomViewStyle())
+            .setCustomContentView(view)
+            .setContentIntent(open)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .build()
+    }
+
     private fun goForeground() {
-        val app = application as App
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Connection", NotificationManager.IMPORTANCE_LOW))
-        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
-        val stop = PendingIntent.getService(this, 1, Intent(this, ConnectionService::class.java).setAction(ACTION_DISCONNECT), PendingIntent.FLAG_IMMUTABLE)
-        val n = Notification.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(app.session.bookmark?.label?.ifBlank { null } ?: app.session.bookmark?.address ?: "Connected")
-            .setContentText("Connected")
-            .setContentIntent(open)
-            .addAction(Notification.Action.Builder(null, "Disconnect", stop).build())
-            .setOngoing(true)
-            .build()
+        val n = notification()
         if (android.os.Build.VERSION.SDK_INT >= 29) {
             val type = if (android.os.Build.VERSION.SDK_INT >= 30 &&
                 checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED)
@@ -125,5 +175,7 @@ class ConnectionService : Service() {
     companion object {
         private const val CHANNEL = "connection"
         private const val ACTION_DISCONNECT = "disconnect"
+        private const val ACTION_MUTE = "mute"
+        private const val ACTION_DEAFEN = "deafen"
     }
 }

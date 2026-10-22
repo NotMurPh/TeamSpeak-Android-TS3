@@ -2,4 +2,7 @@
 <resources>
     <!-- Background of TeamSpeak's own Android launcher icon. -->
     <color name="ic_launcher_background">#253446</color>
+    <!-- Connection notification icons: normal (follows the shade's light/dark look) and muted/hang up. -->
+    <color name="notif_icon">#FF444746</color>
+    <color name="notif_red">#FFE53935</color>
 </resources>

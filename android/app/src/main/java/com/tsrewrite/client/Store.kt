@@ -70,12 +70,11 @@ data class Settings(
     val ignorePokes: Boolean = false,
     val chatTimestamps: Boolean = true,
     val avatarPath: String = "",
+    /** Talk through the connected headset's own mic (wired, USB or Bluetooth) when it has one. */
     val useHeadsetMic: Boolean = true,
     val deviceNoiseSuppression: Boolean = true,
     val lowLatencyWifi: Boolean = true,
     val playbackAgc: Boolean = true,
-    /** Talk through Bluetooth earbuds' mic; Bluetooth then drops what you hear to call quality too. */
-    val btHeadsetMic: Boolean = true,
 )
 
 /** Bookmarks, identities and settings, persisted as JSON in shared preferences. */
@@ -95,10 +94,10 @@ class Store(private val context: Context) {
             updateSettings(_settings.value.copy(bitrate = 96000))
             prefs.edit().putBoolean("qualityV2", true).apply()
         }
-        // Earbuds use their own mic by default, like call apps; v0.1.10-v0.1.15 had it off and saved that.
-        if (!prefs.getBoolean("btMicDefaultOn", false)) {
-            updateSettings(_settings.value.copy(btHeadsetMic = true))
-            prefs.edit().putBoolean("btMicDefaultOn", true).apply()
+        // One headset mic switch for wired and Bluetooth (there were two); start it on, like call apps.
+        if (!prefs.getBoolean("headsetMicCall", false)) {
+            updateSettings(_settings.value.copy(useHeadsetMic = true))
+            prefs.edit().putBoolean("headsetMicCall", true).apply()
         }
         // Start with ts22.ir in the list, looking as it does after a first visit (once; deleting it is respected).
         if (!prefs.getBoolean("seededTs22", false)) {
@@ -173,7 +172,7 @@ class Store(private val context: Context) {
             put("showGroupIcons", s.showGroupIcons); put("showBadges", s.showBadges); put("treeTextScale", s.treeTextScale.toDouble())
             put("quitMessage", s.quitMessage); put("cloudEmail", s.cloudEmail)
             put("announceJoins", s.announceJoins); put("announceLeaves", s.announceLeaves); put("announceMoves", s.announceMoves); put("announceKicks", s.announceKicks); put("announcePokes", s.announcePokes); put("announceMessages", s.announceMessages); put("announceSelf", s.announceSelf); put("ignorePokes", s.ignorePokes); put("chatTimestamps", s.chatTimestamps); put("avatarPath", s.avatarPath)
-            put("useHeadsetMic", s.useHeadsetMic); put("deviceNoiseSuppression", s.deviceNoiseSuppression); put("lowLatencyWifi", s.lowLatencyWifi); put("playbackAgc", s.playbackAgc); put("btHeadsetMic", s.btHeadsetMic)
+            put("useHeadsetMic", s.useHeadsetMic); put("deviceNoiseSuppression", s.deviceNoiseSuppression); put("lowLatencyWifi", s.lowLatencyWifi); put("playbackAgc", s.playbackAgc)
         }.toString()).apply()
     }
 
@@ -253,7 +252,6 @@ class Store(private val context: Context) {
             deviceNoiseSuppression = o.optBoolean("deviceNoiseSuppression", d.deviceNoiseSuppression),
             lowLatencyWifi = o.optBoolean("lowLatencyWifi", d.lowLatencyWifi),
             playbackAgc = o.optBoolean("playbackAgc", d.playbackAgc),
-            btHeadsetMic = o.optBoolean("btHeadsetMic", d.btHeadsetMic),
         )
     }
 }
