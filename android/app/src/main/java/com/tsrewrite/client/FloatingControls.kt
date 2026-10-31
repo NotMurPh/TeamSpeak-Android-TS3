@@ -33,7 +33,7 @@ import kotlin.math.hypot
 
 /**
  * Discord-style floating controls (setting "Floating controls"): while connected and the app is in the
- * background, a small pill with mute, deafen and push to talk floats over other apps. Drag it anywhere;
+ * background, a small pill with mute, deafen, push to talk and disconnect floats over other apps. Drag it anywhere;
  * it snaps to the nearer side. Dropping it on the × at the bottom edge hides it until the app is opened again.
  */
 class FloatingControls(private val context: Context, private val session: Session, private val store: Store) {
@@ -145,7 +145,7 @@ class FloatingControls(private val context: Context, private val session: Sessio
 
     private fun round(color: Int) = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) }
 
-    /** The floating pill: mic, headset and (in push to talk) the talk button, stacked. */
+    /** The floating pill: mic (green while you talk), headset, the talk button (push to talk only) and hang up, stacked. */
     @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
     private inner class Pill : FrameLayout(context) {
         lateinit var params: WindowManager.LayoutParams
@@ -158,6 +158,8 @@ class FloatingControls(private val context: Context, private val session: Sessio
         private val mic = button { session.toggleInputMuted() }
         private val sound = button { session.toggleOutputMuted() }
         private val ptt = button(null)
+        private val leave = button { session.disconnect() }
+        private var wasTalking = false
         private val slop = ViewConfiguration.get(context).scaledTouchSlop
         private var downX = 0f; private var downY = 0f; private var startX = 0; private var startY = 0
         private var dragging = false
@@ -167,7 +169,7 @@ class FloatingControls(private val context: Context, private val session: Sessio
             clipToPadding = false
             setPadding(dp(4), dp(4), dp(4), dp(8)) // room for the shadow
             addView(column)
-            listOf(mic, sound, ptt).forEachIndexed { i, b ->
+            listOf(mic, sound, ptt, leave).forEachIndexed { i, b ->
                 column.addView(b, LinearLayout.LayoutParams(dp(BUTTON), dp(BUTTON)).apply { if (i > 0) topMargin = dp(6) })
             }
             ptt.setOnTouchListener { v, e ->
@@ -202,7 +204,15 @@ class FloatingControls(private val context: Context, private val session: Sessio
             val me = session.server.value?.ownClientId
             val talking = me != null && session.talking.value.containsKey(me)
             mic.setImageResource(if (muted) R.drawable.ic_notif_mic_off else R.drawable.ic_notif_mic)
-            mic.background = round(if (muted) RED else SURFACE).apply { if (talking && !muted) setStroke(dp(2), GREEN) }
+            // Like the channel tree's talk indicator: the mic lights up green while you transmit.
+            val transmitting = talking && !muted
+            mic.background = round(when { muted -> RED; transmitting -> GREEN; else -> SURFACE })
+            if (transmitting && !wasTalking) {
+                mic.animate().scaleX(1.12f).scaleY(1.12f).setDuration(90).withEndAction {
+                    mic.animate().scaleX(1f).scaleY(1f).setDuration(140).start()
+                }.start()
+            }
+            wasTalking = transmitting
             mic.contentDescription = if (muted) "Unmute microphone" else "Mute microphone"
             sound.setImageResource(if (deaf) R.drawable.ic_notif_headset_off else R.drawable.ic_notif_headset)
             sound.background = round(if (deaf) RED else SURFACE)
@@ -213,6 +223,9 @@ class FloatingControls(private val context: Context, private val session: Sessio
             ptt.background = round(when { muted -> SURFACE; talking || pttToggled -> GREEN; else -> BLUE })
             ptt.alpha = if (muted) 0.45f else 1f
             ptt.contentDescription = "Push to talk"
+            leave.setImageResource(R.drawable.ic_notif_call_end)
+            leave.background = round(RED_DARK)
+            leave.contentDescription = "Disconnect"
         }
 
         // A move past the touch slop anywhere but on the talk button drags the pill instead of clicking.
@@ -291,5 +304,6 @@ class FloatingControls(private val context: Context, private val session: Sessio
         val RED = 0xFFF44336.toInt()
         val GREEN = 0xFF4CAF50.toInt()
         val BLUE = 0xFF1A91D0.toInt()
+        val RED_DARK = 0xFFC62828.toInt()
     }
 }
