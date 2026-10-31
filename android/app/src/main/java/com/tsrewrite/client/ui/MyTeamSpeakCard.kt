@@ -32,9 +32,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tsrewrite.client.CloudVault
 import com.tsrewrite.client.Identity
 import com.tsrewrite.client.MyTeamSpeakCloud
 import com.tsrewrite.client.Store
@@ -42,9 +43,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import uniffi.tscore.identityUid
 
-internal class CloudIdentityViewModel : ViewModel() {
-    private val cloud = MyTeamSpeakCloud()
-    var email by mutableStateOf<String?>(null)
+internal class CloudIdentityViewModel(app: android.app.Application) : AndroidViewModel(app) {
+    private val cloud = MyTeamSpeakCloud(vault = CloudVault(app))
+    /** Signed in from an earlier launch: the account stays signed in until "Sign out". */
+    var email by mutableStateOf(cloud.restore())
         private set
     var busy by mutableStateOf(false)
         private set
@@ -99,7 +101,7 @@ internal class CloudIdentityViewModel : ViewModel() {
 
     fun logout() {
         if (busy) return
-        cloud.close()
+        cloud.signOut()
         email = null
         remote = null
         error = null

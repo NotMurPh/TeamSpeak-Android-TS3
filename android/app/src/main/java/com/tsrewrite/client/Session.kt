@@ -114,6 +114,7 @@ class Session(private val context: Context, private val store: Store) : EventLis
     private var audio: AudioEngine? = null
     @Volatile private var userDisconnect = false
     private var reconnectAttempt = 0
+    private var nickTry = 0
     /** This bookmark's connection worked since the user connected; only then a lost one reconnects. */
     private var hadConnected = false
     private var reconnectJob: kotlinx.coroutines.Job? = null
@@ -127,8 +128,10 @@ class Session(private val context: Context, private val store: Store) : EventLis
     private class Collector(val names: Set<String>, val rows: MutableList<Row> = mutableListOf())
     private val collectors = CopyOnWriteArrayList<Collector>()
 
-    fun connect(b: Bookmark) {
+    /** [nickTry] > 0 appends that number to the nickname, after the server said the name is taken. */
+    fun connect(b: Bookmark, nickTry: Int = 0) {
         if (b.id != bookmark?.id) { reconnectAttempt = 0; hadConnected = false }
+        this.nickTry = nickTry
         bookmark = b
         userDisconnect = false
         reconnectJob?.cancel()
@@ -143,7 +146,8 @@ class Session(private val context: Context, private val store: Store) : EventLis
         permCache = null
         icons.reset(b.address)
         applySettings()
-        val nick = b.nickname.ifBlank { id.nickname.ifBlank { store.settings.value.defaultNickname } }
+        val base = b.nickname.ifBlank { id.nickname.ifBlank { store.settings.value.defaultNickname } }
+        val nick = if (nickTry > 0) "$base$nickTry" else base
         val options = ConnectOptions(
             address = b.address.trim(), nickname = nick, identity = id.data,
             serverPassword = b.serverPassword.ifBlank { null }, channel = b.channel.ifBlank { null },
@@ -419,6 +423,14 @@ class Session(private val context: Context, private val store: Store) : EventLis
             }
             Status.RECONNECTING -> addLog("Connection lost, reconnecting… $message")
             Status.DISCONNECTED -> {
+                // Like TS3: a taken nickname (often our own connection that has not timed out yet)
+                // joins as "Name1", "Name2"... instead of failing.
+                val b = bookmark
+                if (!userDisconnect && b != null && message.contains("ClientNicknameInuse") && nickTry < MAX_NICK_TRIES) {
+                    Log.i(TAG, "nickname in use, trying number ${nickTry + 1}")
+                    connect(b, nickTry + 1)
+                    return
+                }
                 addLog(if (message.isBlank()) "Disconnected" else "Disconnected: $message")
                 _server.value = null
                 _talking.value = emptyMap()
@@ -558,6 +570,7 @@ class Session(private val context: Context, private val store: Store) : EventLis
     companion object {
         private const val TAG = "Session"
         private const val MAX_RECONNECTS = 5
+        private const val MAX_NICK_TRIES = 9
         /** "[cspacer0]" etc. in channel names; the log shows the plain name. */
         private val SPACER_TAG = Regex("""\[[*clr]?spacer[^\]]*]""")
     }

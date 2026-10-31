@@ -30,6 +30,7 @@ class ConnectionService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var media: MediaSession? = null
     private var headsetTalking = false
+    private var floating: FloatingControls? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -45,6 +46,7 @@ class ConnectionService : Service() {
             app.store.settings.map { it.lowLatencyWifi }.distinctUntilChanged().collect { on -> setWifiLock(on) }
         }
         app.session.startAudio()
+        floating = FloatingControls(this, app.session, app.store).also { it.start() }
         // Keep the notification's Mute/Deafen buttons in step with the app.
         scope.launch {
             app.session.inputMuted.combine(app.session.outputMuted) { a, b -> a to b }.distinctUntilChanged().drop(1).collect {
@@ -153,6 +155,7 @@ class ConnectionService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        floating?.stop()
         media?.release()
         val app = application as App
         app.session.stopAudio()

@@ -73,9 +73,12 @@ class MyTeamSpeakCloudTest {
         var otpRequired = false
         var failUpload = false
         var expired = false
+        var expireOnce = false
+        var logins = 0
         fun request(endpoint: String, method: String, payload: ByteArray): ByteArray {
             val request = MyTeamSpeakProtocol.parse(payload)
             if (method == "login") {
+                logins++
                 assertEquals("authentication", endpoint)
                 assertEquals(email, request.text(1))
                 assertNotEquals(password, request.text(2))
@@ -86,6 +89,7 @@ class MyTeamSpeakCloudTest {
             assertEquals("synchronization", endpoint)
             assertEquals("synthetic-session", request.text(1))
             if (expired) return Writer().number(1, 102).build()
+            if (expireOnce) { expireOnce = false; return Writer().number(1, 102).build() }
             assertEquals(1, request.messages(2).size)
             assertEquals(1L, request.messages(2).single().number(1))
             if (method == "synchronizeItems") {
@@ -116,7 +120,7 @@ class MyTeamSpeakCloudTest {
             }
             return Writer().number(1, 301).text(3, "global-version").bytes(2, group.build()).build()
         }
-        fun client() = MyTeamSpeakCloud(::request) { it }
+        fun client() = MyTeamSpeakCloud(::request, uid = { it })
     }
 
     @Test fun loginAndDownloadNeverUpload() = runBlocking {
@@ -176,14 +180,18 @@ class MyTeamSpeakCloudTest {
         }
     }
 
-    @Test fun expiredSessionRequiresAnotherLogin() = runBlocking {
+    @Test fun expiredSessionSignsInAgainOnce() = runBlocking {
         val server = Server()
         server.client().use { cloud ->
             cloud.login(email, password, "")
+            // Expired for one request: the saved password signs in again and the request is retried.
+            server.expireOnce = true
+            assertEquals("existing-identity", cloud.listIdentities().single().data)
+            assertEquals(2, server.logins)
+            // Still rejected after signing in again: an error, no endless retries.
             server.expired = true
             try { cloud.listIdentities(); fail("Expected expiration") } catch (_: MyTeamSpeakCloud.CloudException) { }
-            server.expired = false
-            try { cloud.listIdentities(); fail("Expected discarded session") } catch (_: MyTeamSpeakCloud.CloudException) { }
+            assertEquals(3, server.logins)
             assertEquals(0, server.uploads)
         }
     }

@@ -137,6 +137,24 @@ fun SettingsPage(store: Store, session: Session, onBack: () -> Unit) {
                 Hint("Used on every server unless a bookmark sets its own nickname. The avatar is shown to others on each server you join.")
             }
 
+            Card("Floating controls") {
+                // Re-checked whenever this screen comes back, e.g. from Android's permission page.
+                var canDraw by remember { mutableStateOf(android.provider.Settings.canDrawOverlays(context)) }
+                androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                    canDraw = android.provider.Settings.canDrawOverlays(context)
+                }
+                fun askPermission() = context.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    android.net.Uri.parse("package:${context.packageName}")))
+                Toggle("Floating controls", "Mute, deafen and push to talk float over other apps while you're connected, like Discord. Drag them to the × at the bottom edge to hide them", s.floatingControls) { v ->
+                    update { it.copy(floatingControls = v) }
+                    if (v && !canDraw) askPermission()
+                }
+                if (s.floatingControls && !canDraw) {
+                    Hint("Android needs \"Display over other apps\" for TS Client to show them.")
+                    androidx.compose.material3.OutlinedButton(onClick = { askPermission() }) { Text("Allow") }
+                }
+            }
+
             Card("How you talk") {
                 ModeOption(Icons.Rounded.TouchApp, "Push to talk", "Hold the talk button (or a hardware key) to speak", s.voiceMode == VoiceMode.PUSH_TO_TALK) {
                     update { it.copy(voiceMode = VoiceMode.PUSH_TO_TALK) }

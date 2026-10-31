@@ -10,71 +10,122 @@ import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.util.UUID
 import javax.net.ssl.HttpsURLConnection
+import org.json.JSONObject
 import uniffi.tscore.identityUid
 import com.tsrewrite.client.MyTeamSpeakProtocol.Writer
 
-/** Session and decrypted account key are deliberately never written to preferences or backups. */
+/**
+ * The myTeamSpeak account stays signed in: the session, the account key and the password are kept in
+ * [vault] (encrypted on the phone), restored at launch, and an expired session signs in again by itself.
+ */
 internal class MyTeamSpeakCloud(
     private val transport: (String, String, ByteArray) -> ByteArray = ::request,
     private val uid: (String) -> String = ::identityUid,
+    private val vault: Vault? = null,
 ) : AutoCloseable {
+    /** Where the sign-in is kept between launches. */
+    interface Vault {
+        fun load(): String?
+        fun save(value: String)
+        fun clear()
+    }
+
     class CloudException(message: String) : Exception(message)
     class RemoteIdentity(val id: String, val name: String, val data: String, val nickname: String, val uid: String)
     class UploadResult(val added: Int, val skipped: Int)
-    private class Account(val email: String, val session: String, val key: ByteArray)
+    private class Account(val email: String, val password: String, val session: String, val key: ByteArray)
     private class Snapshot(val globalVersion: String, val version: String, val identities: List<RemoteIdentity>)
+    /** The server no longer accepts the session (code 102). */
+    private class SessionExpired : Exception()
     private val mutex = Mutex()
     private val deviceId = UUID.randomUUID().toString()
     @Volatile private var account: Account? = null
 
+    /** The saved sign-in from an earlier launch, if any; returns its email. */
+    fun restore(): String? {
+        val text = vault?.load() ?: return null
+        val restored = runCatching {
+            val saved = JSONObject(text)
+            Account(saved.getString("email"), saved.getString("password"), saved.getString("session"),
+                java.util.Base64.getDecoder().decode(saved.getString("key")))
+        }.getOrNull() ?: return null
+        account = restored
+        return restored.email
+    }
+
     suspend fun login(email: String, password: String, otp: String): String = withContext(Dispatchers.IO) {
         mutex.withLock {
             close()
-            val normalized = MyTeamSpeakProtocol.normalizedEmail(email)
-            if (normalized.isBlank() || password.isEmpty()) throw CloudException("Enter your myTeamSpeak email and password.")
-            val secret = password.toByteArray(Charsets.UTF_8)
-            var key: ByteArray? = null
-            try {
-                val login = MyTeamSpeakProtocol.loginPassword(normalized, secret)
-                val payload = Writer().text(1, normalized).text(2, login).number(3, 0).number(4, 0).number(5, 1)
-                    .text(7, deviceId).text(9, "TeamSpeak Android (TS3)")
-                if (otp.isNotBlank()) payload.text(6, otp.trim())
-                val reply = call("authentication", "login", payload.build())
-                when (reply.number(5)) {
-                    200L -> Unit
-                    208L, 209L, 210L, 211L -> throw CloudException("Enter a current two-factor authentication code and try again.")
-                    202L -> throw CloudException("The email or password was not accepted.")
-                    203L -> throw CloudException("Verify your myTeamSpeak email before signing in.")
-                    else -> throw CloudException("myTeamSpeak could not sign in (${reply.number(5)}). Try again later.")
-                }
-                val session = reply.text(2)
-                if (session.isBlank()) throw CloudException("myTeamSpeak did not return a session.")
-                key = try { MyTeamSpeakProtocol.accountKey(normalized, secret, login, reply.text(4), reply.bytes(1)) }
-                catch (_: Exception) { throw CloudException("Signed in, but cloud data could not be unlocked. Restore access using your recovery key in the official client first. Nothing was changed.") }
-                val candidate = Account(normalized, session, key)
-                // Only expose a ready account after a read-only identity fetch and integrity validation.
-                fetch(candidate)
-                currentCoroutineContext().ensureActive()
-                account = candidate
-                key = null
-                normalized
-            } finally { secret.fill(0); key?.fill(0) }
+            val signedIn = authenticate(email, password, otp)
+            account = signedIn
+            save(signedIn)
+            signedIn.email
+        }
+    }
+
+    private suspend fun authenticate(email: String, password: String, otp: String): Account {
+        val normalized = MyTeamSpeakProtocol.normalizedEmail(email)
+        if (normalized.isBlank() || password.isEmpty()) throw CloudException("Enter your myTeamSpeak email and password.")
+        val secret = password.toByteArray(Charsets.UTF_8)
+        var key: ByteArray? = null
+        try {
+            val login = MyTeamSpeakProtocol.loginPassword(normalized, secret)
+            val payload = Writer().text(1, normalized).text(2, login).number(3, 0).number(4, 0).number(5, 1)
+                .text(7, deviceId).text(9, "TeamSpeak Android (TS3)")
+            if (otp.isNotBlank()) payload.text(6, otp.trim())
+            val reply = call("authentication", "login", payload.build())
+            when (reply.number(5)) {
+                200L -> Unit
+                208L, 209L, 210L, 211L -> throw CloudException("Enter a current two-factor authentication code and try again.")
+                202L -> throw CloudException("The email or password was not accepted.")
+                203L -> throw CloudException("Verify your myTeamSpeak email before signing in.")
+                else -> throw CloudException("myTeamSpeak could not sign in (${reply.number(5)}). Try again later.")
+            }
+            val session = reply.text(2)
+            if (session.isBlank()) throw CloudException("myTeamSpeak did not return a session.")
+            key = try { MyTeamSpeakProtocol.accountKey(normalized, secret, login, reply.text(4), reply.bytes(1)) }
+            catch (_: Exception) { throw CloudException("Signed in, but cloud data could not be unlocked. Restore access using your recovery key in the official client first. Nothing was changed.") }
+            val candidate = Account(normalized, password, session, key)
+            // Only expose a ready account after a read-only identity fetch and integrity validation.
+            try { fetch(candidate) } catch (_: SessionExpired) { throw CloudException("myTeamSpeak did not accept the new session. Try again later.") }
+            currentCoroutineContext().ensureActive()
+            key = null
+            return candidate
+        } finally { secret.fill(0); key?.fill(0) }
+    }
+
+    private fun save(a: Account) {
+        vault?.save(JSONObject().put("email", a.email).put("password", a.password).put("session", a.session)
+            .put("key", java.util.Base64.getEncoder().encodeToString(a.key)).toString())
+    }
+
+    /** Runs [block] with the account; when the session has expired, signs in again with the saved password and retries once. */
+    private suspend fun <T> signedIn(block: suspend (Account) -> T): T {
+        val active = requireAccount()
+        return try { block(active) } catch (_: SessionExpired) {
+            val renewed = try { authenticate(active.email, active.password, "") }
+            catch (e: CloudException) { throw CloudException("Your myTeamSpeak session expired and signing in again failed: ${e.message}") }
+            if (account === active) { account = renewed; save(renewed) }
+            try { block(renewed) } catch (_: SessionExpired) { throw CloudException("myTeamSpeak keeps rejecting the session. Try again later.") }
         }
     }
 
     suspend fun listIdentities(): List<RemoteIdentity> = withContext(Dispatchers.IO) {
-        mutex.withLock { fetch(requireAccount()).identities }
+        mutex.withLock { signedIn { fetch(it).identities } }
     }
 
     suspend fun upload(identities: List<Identity>): UploadResult = withContext(Dispatchers.IO) {
-        mutex.withLock {
-            val active = requireAccount()
+        mutex.withLock { signedIn { active -> uploadAs(active, identities) } }
+    }
+
+    private suspend fun uploadAs(active: Account, identities: List<Identity>): UploadResult {
+        run {
             if (identities.isEmpty() || identities.size > 256) throw CloudException("Choose between 1 and 256 identities.")
             val selected = identities.distinctBy { uid(it.data) }
             val before = fetch(active)
             val existing = before.identities.map { it.uid }.toSet()
             val additions = selected.filter { uid(it.data) !in existing }
-            if (additions.isEmpty()) return@withLock UploadResult(0, selected.size)
+            if (additions.isEmpty()) return UploadResult(0, selected.size)
             val entries = Writer().number(1, 1).text(2, before.version)
             for (identity in additions) {
                 val id = UUID.randomUUID().toString()
@@ -95,7 +146,7 @@ internal class MyTeamSpeakCloud(
             catch (_: Exception) { throw CloudException("Upload could not be confirmed. Refresh cloud identities before trying again; some may have arrived.") }
             when (response.number(1)) {
                 300L, 301L -> Unit
-                102L -> { close(); throw CloudException("Your session expired. Sign out and sign in again.") }
+                102L -> throw SessionExpired()
                 303L -> throw CloudException("Your cloud identities changed elsewhere. Refresh them before trying again.")
                 304L -> throw CloudException("Your myTeamSpeak identity limit was reached.")
                 else -> throw CloudException("Upload was not confirmed (${response.number(1)}). Refresh cloud identities before retrying.")
@@ -107,7 +158,7 @@ internal class MyTeamSpeakCloud(
             if (!actual.containsAll(existing) || additions.any { uid(it.data) !in actual }) {
                 throw CloudException("Cloud contents changed during upload. Check them in the official client before trying again.")
             }
-            UploadResult(additions.size, selected.size - additions.size)
+            return UploadResult(additions.size, selected.size - additions.size)
         }
     }
 
@@ -119,7 +170,7 @@ internal class MyTeamSpeakCloud(
         val reply = call("synchronization", "requestServerItems", query)
         when (reply.number(1)) {
             300L, 301L, 302L -> Unit
-            102L -> { close(); throw CloudException("Your session expired. Sign out and sign in again.") }
+            102L -> throw SessionExpired()
             else -> throw CloudException("Could not read cloud identities (${reply.number(1)}).")
         }
         val classes = reply.messages(2).filter { it.number(1) == 1L }
@@ -158,7 +209,11 @@ internal class MyTeamSpeakCloud(
         } finally { payload.fill(0) }
     }
 
+    /** Forgets the account in memory only (the saved sign-in stays for the next launch). */
     override fun close() { account?.key?.fill(0); account = null }
+
+    /** Signs out for good: forgets the account and the saved sign-in. */
+    fun signOut() { close(); vault?.clear() }
 
     companion object {
         private const val NIL_UUID = "00000000-0000-0000-0000-000000000000"

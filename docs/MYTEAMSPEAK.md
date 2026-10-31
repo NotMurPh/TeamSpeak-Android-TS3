@@ -6,9 +6,13 @@ separate. Nothing is uploaded merely by signing in or opening a dialog.
 
 ## Account Handling
 
-- Passwords are not saved to preferences, backups, files or logs.
-- Sessions and the decrypted account key are held in memory. Sign-out discards
-  them; a new app process requires sign-in again.
+- The account stays signed in until Sign out. The email, password, session and
+  decrypted account key are kept in app storage, encrypted with an AES key held
+  in the Android Keystore; they are excluded from backups and never logged.
+- When myTeamSpeak expires the session, the app signs in again with the saved
+  password and retries once. Accounts with two-factor authentication then need
+  a manual sign-in with a current code.
+- Sign out deletes the saved sign-in.
 - An optional two-factor code can be supplied at sign-in.
 - Account recovery, password reset and replacement encryption keys are not
   implemented. Failed decryption never triggers a reset or overwrite.

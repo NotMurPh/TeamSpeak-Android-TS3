@@ -75,6 +75,8 @@ data class Settings(
     val deviceNoiseSuppression: Boolean = true,
     val lowLatencyWifi: Boolean = true,
     val playbackAgc: Boolean = true,
+    /** Discord-style floating mute / deafen / push-to-talk controls over other apps while connected. */
+    val floatingControls: Boolean = false,
 )
 
 /** Bookmarks, identities and settings, persisted as JSON in shared preferences. */
@@ -172,7 +174,7 @@ class Store(private val context: Context) {
             put("showGroupIcons", s.showGroupIcons); put("showBadges", s.showBadges); put("treeTextScale", s.treeTextScale.toDouble())
             put("quitMessage", s.quitMessage); put("cloudEmail", s.cloudEmail)
             put("announceJoins", s.announceJoins); put("announceLeaves", s.announceLeaves); put("announceMoves", s.announceMoves); put("announceKicks", s.announceKicks); put("announcePokes", s.announcePokes); put("announceMessages", s.announceMessages); put("announceSelf", s.announceSelf); put("ignorePokes", s.ignorePokes); put("chatTimestamps", s.chatTimestamps); put("avatarPath", s.avatarPath)
-            put("useHeadsetMic", s.useHeadsetMic); put("deviceNoiseSuppression", s.deviceNoiseSuppression); put("lowLatencyWifi", s.lowLatencyWifi); put("playbackAgc", s.playbackAgc)
+            put("useHeadsetMic", s.useHeadsetMic); put("deviceNoiseSuppression", s.deviceNoiseSuppression); put("lowLatencyWifi", s.lowLatencyWifi); put("playbackAgc", s.playbackAgc); put("floatingControls", s.floatingControls)
         }.toString()).apply()
     }
 
@@ -252,6 +254,7 @@ class Store(private val context: Context) {
             deviceNoiseSuppression = o.optBoolean("deviceNoiseSuppression", d.deviceNoiseSuppression),
             lowLatencyWifi = o.optBoolean("lowLatencyWifi", d.lowLatencyWifi),
             playbackAgc = o.optBoolean("playbackAgc", d.playbackAgc),
+            floatingControls = o.optBoolean("floatingControls", d.floatingControls),
         )
     }
 }

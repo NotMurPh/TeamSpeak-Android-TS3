@@ -1,5 +1,15 @@
 [
   {
+    "build": 23,
+    "date": "2026-10-31",
+    "title": "Floating controls",
+    "changes": [
+      ["new", "Floating controls (Settings, off by default): while you're connected and the app is in the background, mute, deafen and push to talk float over other apps, like Discord. Drag them anywhere; drop them on the × at the bottom edge to hide them until you open the app again."],
+      ["improved", "myTeamSpeak stays signed in, also after restarting the app. When the session expires, the app signs in again by itself."],
+      ["fixed", "If your nickname is already taken on a server, you join as \"Name1\", \"Name2\" and so on, like the official client, instead of failing."]
+    ]
+  },
+  {
     "build": 22,
     "date": "2026-10-22",
     "title": "Earbuds talk like Discord",
