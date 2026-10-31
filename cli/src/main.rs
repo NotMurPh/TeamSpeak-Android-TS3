@@ -98,6 +98,8 @@ fn main() -> anyhow::Result<()> {
         input_muted: false,
         output_muted: false,
         subscribe_all: true,
+        // TSCLI_HWID sets the hardware ID; unset keeps the library's shared default.
+        hardware_id: std::env::var("TSCLI_HWID").ok(),
     })?;
 
     // Audio pump: 20 ms ticks, optional 440 Hz tone out, playback energy in.

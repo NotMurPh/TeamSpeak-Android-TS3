@@ -6,6 +6,7 @@
     "changes": [
       ["new", "Floating controls (Settings, off by default): while you're connected and the app is in the background, mute, deafen, push to talk and disconnect float over other apps, like Discord. The mic lights up green while you talk. Drag them anywhere; drop them on the × at the bottom edge to hide them until you open the app again."],
       ["improved", "myTeamSpeak stays signed in, also after restarting the app. When the session expires, the app signs in again by itself."],
+      ["fixed", "Identities that some servers refused with \"too many clones\" connect again. Every copy of the app used to send the same hardware ID, so servers counted them all as one device; each install now has its own."],
       ["fixed", "If your nickname is already taken on a server, you join as \"Name1\", \"Name2\" and so on, like the official client, instead of failing."]
     ]
   },

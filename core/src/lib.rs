@@ -50,6 +50,10 @@ pub struct ConnectOptions {
     pub output_muted: bool,
     /// Subscribe to all channels after connecting (like the original app).
     pub subscribe_all: bool,
+    /// Hardware ID sent to the server (TS3 format: two 32-digit hex strings joined by a comma).
+    /// Servers limit clones per hardware ID, so each install needs its own; None keeps the library's
+    /// built-in one, which every tsclientlib client shares.
+    pub hardware_id: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]

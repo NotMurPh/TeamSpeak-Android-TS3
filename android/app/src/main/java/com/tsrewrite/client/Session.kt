@@ -153,6 +153,7 @@ class Session(private val context: Context, private val store: Store) : EventLis
             serverPassword = b.serverPassword.ifBlank { null }, channel = b.channel.ifBlank { null },
             channelPassword = b.channelPassword.ifBlank { null },
             inputMuted = false, outputMuted = false, subscribeAll = b.subscribeAll,
+            hardwareId = store.hardwareId,
         )
         _status.value = Status.CONNECTING to b.address
         _active.value = true
@@ -431,7 +432,9 @@ class Session(private val context: Context, private val store: Store) : EventLis
                     connect(b, nickTry + 1)
                     return
                 }
-                addLog(if (message.isBlank()) "Disconnected" else "Disconnected: $message")
+                val reason = if (message.contains("ClientTooManyClonesConnected"))
+                    "The server allows no more connections from this identity. Disconnect it elsewhere, or wait a minute for an old connection to time out." else message
+                addLog(if (reason.isBlank()) "Disconnected" else "Disconnected: $reason")
                 _server.value = null
                 _talking.value = emptyMap()
                 pending.values.forEach { it.complete(CommandFailure(0u, "NotConnected", null)) }
@@ -440,7 +443,7 @@ class Session(private val context: Context, private val store: Store) : EventLis
                 if (!userDisconnect && maybeReconnect(message)) {
                     _status.value = Status.RECONNECTING to "Reconnecting in a moment (attempt $reconnectAttempt of $MAX_RECONNECTS)"
                 } else {
-                    _status.value = status to message
+                    _status.value = status to reason
                     _active.value = false
                 }
             }

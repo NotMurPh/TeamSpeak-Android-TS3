@@ -90,6 +90,19 @@ class Store(private val context: Context) {
     private val _settings = MutableStateFlow(loadSettings())
     val settings: StateFlow<Settings> = _settings
 
+    /**
+     * This install's hardware ID, made once, in TS3's format (two 32-digit hex strings). Servers limit
+     * connections per hardware ID; the library's built-in one is the same for every copy of this app,
+     * so they all counted as one machine and hit that limit together.
+     */
+    val hardwareId: String by lazy {
+        prefs.getString("hardwareId", null) ?: run {
+            val r = java.security.SecureRandom()
+            fun hex() = ByteArray(16).also(r::nextBytes).joinToString("") { "%02x".format(it) }
+            "${hex()},${hex()}".also { prefs.edit().putString("hardwareId", it).apply() }
+        }
+    }
+
     init {
         // Voice quality defaults to the best (Studio, 96 kbps); move earlier installs up once.
         if (!prefs.getBoolean("qualityV2", false)) {

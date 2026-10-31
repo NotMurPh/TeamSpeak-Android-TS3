@@ -73,6 +73,9 @@ async fn session(
     if let Some(p) = opts.server_password.clone().filter(|p| !p.is_empty()) {
         b = b.password(p);
     }
+    if let Some(h) = opts.hardware_id.clone().filter(|h| !h.is_empty()) {
+        b = b.hardware_id(h);
+    }
     if let Some(c) = opts.channel.clone().filter(|c| !c.is_empty()) {
         b = match c.strip_prefix('/').and_then(|id| id.parse::<u64>().ok()) {
             Some(id) => b.channel_id(ChannelId(id)),

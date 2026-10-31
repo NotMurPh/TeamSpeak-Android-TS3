@@ -4828,6 +4828,13 @@ data class ConnectOptions (
      * Subscribe to all channels after connecting (like the original app).
      */
     var `subscribeAll`: kotlin.Boolean
+    , 
+    /**
+     * Hardware ID sent to the server (TS3 format: two 32-digit hex strings joined by a comma).
+     * Servers limit clones per hardware ID, so each install needs its own; None keeps the library's
+     * built-in one, which every tsclientlib client shares.
+     */
+    var `hardwareId`: kotlin.String?
     
 ){
     
@@ -4853,6 +4860,7 @@ public object FfiConverterTypeConnectOptions: FfiConverterRustBuffer<ConnectOpti
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -4865,7 +4873,8 @@ public object FfiConverterTypeConnectOptions: FfiConverterRustBuffer<ConnectOpti
             FfiConverterOptionalString.allocationSize(value.`channelPassword`) +
             FfiConverterBoolean.allocationSize(value.`inputMuted`) +
             FfiConverterBoolean.allocationSize(value.`outputMuted`) +
-            FfiConverterBoolean.allocationSize(value.`subscribeAll`)
+            FfiConverterBoolean.allocationSize(value.`subscribeAll`) +
+            FfiConverterOptionalString.allocationSize(value.`hardwareId`)
     )
 
     override fun write(value: ConnectOptions, buf: ByteBuffer) {
@@ -4878,6 +4887,7 @@ public object FfiConverterTypeConnectOptions: FfiConverterRustBuffer<ConnectOpti
             FfiConverterBoolean.write(value.`inputMuted`, buf)
             FfiConverterBoolean.write(value.`outputMuted`, buf)
             FfiConverterBoolean.write(value.`subscribeAll`, buf)
+            FfiConverterOptionalString.write(value.`hardwareId`, buf)
     }
 }
 
