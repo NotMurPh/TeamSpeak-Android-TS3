@@ -1,5 +1,14 @@
 [
   {
+    "build": 25,
+    "date": "2026-11-06",
+    "title": "Move the one-button overlay",
+    "changes": [
+      ["fixed", "Floating controls can be moved when push to talk is the only button: a clear drag moves them, and a small wobble while holding still talks."],
+      ["improved", "With \"Tap to toggle\", the floating talk button switches when you lift your finger, so dragging it doesn't start talking."]
+    ]
+  },
+  {
     "build": 24,
     "date": "2026-11-05",
     "title": "Your floating controls",

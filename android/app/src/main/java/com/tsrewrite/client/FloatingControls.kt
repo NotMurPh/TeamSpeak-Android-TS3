@@ -184,12 +184,13 @@ class FloatingControls(private val context: Context, private val session: Sessio
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
                         v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        if (s.pttToggle) { pttToggled = !pttToggled; session.client.setPushToTalk(pttToggled) }
-                        else session.client.setPushToTalk(true)
+                        if (!s.pttToggle) session.client.setPushToTalk(true)
                         v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(80).start()
                     }
+                    // A drag from this button arrives as CANCEL: a hold stops talking, a toggle does not flip.
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                         if (!s.pttToggle) session.client.setPushToTalk(false)
+                        else if (e.actionMasked == MotionEvent.ACTION_UP) { pttToggled = !pttToggled; session.client.setPushToTalk(pttToggled) }
                         v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
                     }
                 }
@@ -278,18 +279,22 @@ class FloatingControls(private val context: Context, private val session: Sessio
             leave.contentDescription = "Disconnect"
         }
 
-        // A move past the touch slop anywhere but on the talk button drags the pill instead of clicking.
+        // A move past the touch slop drags the pill instead of clicking. The talk button needs a clearer move,
+        // so a finger wobbling during a hold keeps talking, yet a pill with only that button can still be moved.
         override fun onInterceptTouchEvent(e: MotionEvent): Boolean {
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     downX = e.rawX; downY = e.rawY; startX = params.x; startY = params.y; dragging = false
                 }
-                MotionEvent.ACTION_MOVE -> if (!onPtt(e) && hypot(e.rawX - downX, e.rawY - downY) > slop) { dragging = true; showTarget() }
+                MotionEvent.ACTION_MOVE -> {
+                    val needed = if (onPtt()) slop * PTT_DRAG_SLOPS else slop
+                    if (hypot(e.rawX - downX, e.rawY - downY) > needed) { dragging = true; showTarget() }
+                }
             }
             return dragging
         }
 
-        private fun onPtt(e: MotionEvent): Boolean {
+        private fun onPtt(): Boolean {
             if (ptt.visibility != View.VISIBLE) return false
             val loc = IntArray(2).also { ptt.getLocationOnScreen(it) }
             return downX >= loc[0] && downX <= loc[0] + ptt.width && downY >= loc[1] && downY <= loc[1] + ptt.height
@@ -354,6 +359,7 @@ class FloatingControls(private val context: Context, private val session: Sessio
         const val IDLE_MS = 4000L
         const val FADED = 0.35f
         const val MIN_OPACITY = 0.1f
+        const val PTT_DRAG_SLOPS = 3
         val SURFACE = 0xFF2A2D30.toInt()
         val RED = 0xFFF44336.toInt()
         val GREEN = 0xFF4CAF50.toInt()
