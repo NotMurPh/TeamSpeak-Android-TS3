@@ -77,6 +77,16 @@ data class Settings(
     val playbackAgc: Boolean = true,
     /** Discord-style floating mute / deafen / push-to-talk controls over other apps while connected. */
     val floatingControls: Boolean = false,
+    // Which buttons the floating controls show (push to talk only ever shows in push-to-talk mode).
+    val floatingMic: Boolean = true,
+    val floatingSound: Boolean = true,
+    val floatingPtt: Boolean = true,
+    val floatingLeave: Boolean = true,
+    /** The floating controls turn see-through after a few seconds without being touched. */
+    val floatingFade: Boolean = true,
+    /** The floating controls always stay at [floatingOpacity]; this replaces [floatingFade]. */
+    val floatingFixedOpacity: Boolean = false,
+    val floatingOpacity: Float = 0.5f,
 )
 
 /** Bookmarks, identities and settings, persisted as JSON in shared preferences. */
@@ -188,6 +198,8 @@ class Store(private val context: Context) {
             put("quitMessage", s.quitMessage); put("cloudEmail", s.cloudEmail)
             put("announceJoins", s.announceJoins); put("announceLeaves", s.announceLeaves); put("announceMoves", s.announceMoves); put("announceKicks", s.announceKicks); put("announcePokes", s.announcePokes); put("announceMessages", s.announceMessages); put("announceSelf", s.announceSelf); put("ignorePokes", s.ignorePokes); put("chatTimestamps", s.chatTimestamps); put("avatarPath", s.avatarPath)
             put("useHeadsetMic", s.useHeadsetMic); put("deviceNoiseSuppression", s.deviceNoiseSuppression); put("lowLatencyWifi", s.lowLatencyWifi); put("playbackAgc", s.playbackAgc); put("floatingControls", s.floatingControls)
+            put("floatingMic", s.floatingMic); put("floatingSound", s.floatingSound); put("floatingPtt", s.floatingPtt); put("floatingLeave", s.floatingLeave)
+            put("floatingFade", s.floatingFade); put("floatingFixedOpacity", s.floatingFixedOpacity); put("floatingOpacity", s.floatingOpacity.toDouble())
         }.toString()).apply()
     }
 
@@ -268,6 +280,13 @@ class Store(private val context: Context) {
             lowLatencyWifi = o.optBoolean("lowLatencyWifi", d.lowLatencyWifi),
             playbackAgc = o.optBoolean("playbackAgc", d.playbackAgc),
             floatingControls = o.optBoolean("floatingControls", d.floatingControls),
+            floatingMic = o.optBoolean("floatingMic", d.floatingMic),
+            floatingSound = o.optBoolean("floatingSound", d.floatingSound),
+            floatingPtt = o.optBoolean("floatingPtt", d.floatingPtt),
+            floatingLeave = o.optBoolean("floatingLeave", d.floatingLeave),
+            floatingFade = o.optBoolean("floatingFade", d.floatingFade),
+            floatingFixedOpacity = o.optBoolean("floatingFixedOpacity", d.floatingFixedOpacity),
+            floatingOpacity = o.optDouble("floatingOpacity", d.floatingOpacity.toDouble()).toFloat(),
         )
     }
 }

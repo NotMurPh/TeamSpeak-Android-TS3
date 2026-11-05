@@ -33,7 +33,8 @@ import kotlin.math.hypot
 
 /**
  * Discord-style floating controls (setting "Floating controls"): while connected and the app is in the
- * background, a small pill with mute, deafen, push to talk and disconnect floats over other apps. Drag it anywhere;
+ * background, a small pill with the chosen buttons (mute, deafen, push to talk, disconnect) floats over other apps,
+ * fading when idle or at a fixed opacity, as set in Settings. Drag it anywhere;
  * it snaps to the nearer side. Dropping it on the × at the bottom edge hides it until the app is opened again.
  */
 class FloatingControls(private val context: Context, private val session: Session, private val store: Store) {
@@ -72,10 +73,13 @@ class FloatingControls(private val context: Context, private val session: Sessio
 
     private fun update() {
         val s = store.settings.value
-        val show = s.floatingControls && session.active.value && !appVisible && !dismissed && Settings.canDrawOverlays(context)
+        val anyButton = s.floatingMic || s.floatingSound || s.floatingLeave || showsPtt(s)
+        val show = s.floatingControls && anyButton && session.active.value && !appVisible && !dismissed && Settings.canDrawOverlays(context)
         if (!show) { hide(); return }
         (bubble ?: Pill().also { add(it) }).refresh()
     }
+
+    private fun showsPtt(s: com.tsrewrite.client.Settings) = s.floatingPtt && s.voiceMode == VoiceMode.PUSH_TO_TALK
 
     private fun hide() {
         bubble?.let { runCatching { wm.removeView(it) } }
@@ -99,6 +103,7 @@ class FloatingControls(private val context: Context, private val session: Sessio
 
     private fun add(p: Pill) {
         val (w, h) = screen()
+        p.refresh() // its height depends on the chosen buttons
         p.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val params = overlayParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, true)
         val right = prefs.getBoolean("right", true)
@@ -108,7 +113,8 @@ class FloatingControls(private val context: Context, private val session: Sessio
         wm.addView(p, params)
         bubble = p
         p.alpha = 0f; p.scaleX = 0.8f; p.scaleY = 0.8f
-        p.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180).setInterpolator(DecelerateInterpolator()).start()
+        p.animate().alpha(p.restingAlpha()).scaleX(1f).scaleY(1f).setDuration(180).setInterpolator(DecelerateInterpolator()).start()
+        p.fadeWhenIdle()
     }
 
     // The close target: a round × sitting on the bottom edge, shown only while dragging.
@@ -145,7 +151,7 @@ class FloatingControls(private val context: Context, private val session: Sessio
 
     private fun round(color: Int) = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) }
 
-    /** The floating pill: mic (green while you talk), headset, the talk button (push to talk only) and hang up, stacked. */
+    /** The floating pill: the chosen ones of mic (green while you talk), headset, talk button and hang up, stacked. */
     @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
     private inner class Pill : FrameLayout(context) {
         lateinit var params: WindowManager.LayoutParams
@@ -164,14 +170,14 @@ class FloatingControls(private val context: Context, private val session: Sessio
         private var downX = 0f; private var downY = 0f; private var startX = 0; private var startY = 0
         private var dragging = false
         private var wasNear = false
+        private val buttons = listOf(mic, sound, ptt, leave)
+        private val fade = Runnable { animate().alpha(FADED).setDuration(400).start() }
 
         init {
             clipToPadding = false
             setPadding(dp(4), dp(4), dp(4), dp(8)) // room for the shadow
             addView(column)
-            listOf(mic, sound, ptt, leave).forEachIndexed { i, b ->
-                column.addView(b, LinearLayout.LayoutParams(dp(BUTTON), dp(BUTTON)).apply { if (i > 0) topMargin = dp(6) })
-            }
+            buttons.forEach { column.addView(it, LinearLayout.LayoutParams(dp(BUTTON), dp(BUTTON))) }
             ptt.setOnTouchListener { v, e ->
                 val s = store.settings.value
                 if (session.inputMuted.value) return@setOnTouchListener true
@@ -198,7 +204,53 @@ class FloatingControls(private val context: Context, private val session: Sessio
             if (onClick != null) setOnClickListener { performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY); onClick() }
         }
 
+        /** A fixed opacity from the settings, otherwise fully visible (until it fades). */
+        fun restingAlpha(): Float {
+            val s = store.settings.value
+            return if (s.floatingFixedOpacity) s.floatingOpacity.coerceIn(MIN_OPACITY, 1f) else 1f
+        }
+
+        fun fadeWhenIdle() {
+            removeCallbacks(fade)
+            val s = store.settings.value
+            if (s.floatingFade && !s.floatingFixedOpacity) postDelayed(fade, IDLE_MS)
+        }
+
+        // Any touch brings a faded pill back; the idle wait starts over when the finger lifts.
+        override fun dispatchTouchEvent(e: MotionEvent): Boolean {
+            if (e.actionMasked == MotionEvent.ACTION_DOWN) {
+                removeCallbacks(fade)
+                animate().alpha(restingAlpha()).setDuration(120).start()
+            }
+            val handled = super.dispatchTouchEvent(e)
+            if (e.actionMasked == MotionEvent.ACTION_UP || e.actionMasked == MotionEvent.ACTION_CANCEL) fadeWhenIdle()
+            return handled
+        }
+
+        override fun onDetachedFromWindow() {
+            removeCallbacks(fade)
+            super.onDetachedFromWindow()
+        }
+
+        private fun chooseButtons() {
+            val s = store.settings.value
+            mic.visibility = if (s.floatingMic) View.VISIBLE else View.GONE
+            sound.visibility = if (s.floatingSound) View.VISIBLE else View.GONE
+            ptt.visibility = if (showsPtt(s)) View.VISIBLE else View.GONE
+            leave.visibility = if (s.floatingLeave) View.VISIBLE else View.GONE
+            // A gap only between the buttons that show.
+            var first = true
+            for (b in buttons) {
+                if (b.visibility != View.VISIBLE) continue
+                val top = if (first) 0 else dp(6)
+                first = false
+                val lp = b.layoutParams as LinearLayout.LayoutParams
+                if (lp.topMargin != top) { lp.topMargin = top; b.layoutParams = lp }
+            }
+        }
+
         fun refresh() {
+            chooseButtons()
             val muted = session.inputMuted.value
             val deaf = session.outputMuted.value
             val me = session.server.value?.ownClientId
@@ -217,8 +269,6 @@ class FloatingControls(private val context: Context, private val session: Sessio
             sound.setImageResource(if (deaf) R.drawable.ic_notif_headset_off else R.drawable.ic_notif_headset)
             sound.background = round(if (deaf) RED else SURFACE)
             sound.contentDescription = if (deaf) "Undeafen" else "Deafen"
-            val pushToTalk = store.settings.value.voiceMode == VoiceMode.PUSH_TO_TALK
-            ptt.visibility = if (pushToTalk) View.VISIBLE else View.GONE
             ptt.setImageResource(R.drawable.ic_overlay_ptt)
             ptt.background = round(when { muted -> SURFACE; talking || pttToggled -> GREEN; else -> BLUE })
             ptt.alpha = if (muted) 0.45f else 1f
@@ -300,6 +350,10 @@ class FloatingControls(private val context: Context, private val session: Sessio
         const val EDGE = 6
         const val TARGET = 58
         const val TARGET_MARGIN = 10
+        /** How long the pill stays fully visible after a touch, and how see-through it then gets. */
+        const val IDLE_MS = 4000L
+        const val FADED = 0.35f
+        const val MIN_OPACITY = 0.1f
         val SURFACE = 0xFF2A2D30.toInt()
         val RED = 0xFFF44336.toInt()
         val GREEN = 0xFF4CAF50.toInt()

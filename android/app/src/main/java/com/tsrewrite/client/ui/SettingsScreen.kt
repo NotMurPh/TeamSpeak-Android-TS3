@@ -145,13 +145,33 @@ fun SettingsPage(store: Store, session: Session, onBack: () -> Unit) {
                 }
                 fun askPermission() = context.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     android.net.Uri.parse("package:${context.packageName}")))
-                Toggle("Floating controls", "Mute, deafen and push to talk float over other apps while you're connected, like Discord. Drag them to the × at the bottom edge to hide them", s.floatingControls) { v ->
+                Toggle("Floating controls", "Buttons that float over other apps while you're connected, like Discord. Drag them to the × at the bottom edge to hide them", s.floatingControls) { v ->
                     update { it.copy(floatingControls = v) }
                     if (v && !canDraw) askPermission()
                 }
                 if (s.floatingControls && !canDraw) {
                     Hint("Android needs \"Display over other apps\" for TS Client to show them.")
                     androidx.compose.material3.OutlinedButton(onClick = { askPermission() }) { Text("Allow") }
+                }
+                if (s.floatingControls) {
+                    Hint("Buttons to show (at least one)")
+                    // The last button stays on: without any, there would be nothing to see or drag.
+                    val chosen = listOf(s.floatingMic, s.floatingSound, s.floatingPtt, s.floatingLeave).count { it }
+                    fun choose(on: Boolean, change: (Settings) -> Settings) { if (on || chosen > 1) update(change) }
+                    Toggle("Mute microphone", null, s.floatingMic) { v -> choose(v) { it.copy(floatingMic = v) } }
+                    Toggle("Mute sound", null, s.floatingSound) { v -> choose(v) { it.copy(floatingSound = v) } }
+                    Toggle("Push to talk", "Only shows when you talk with push to talk", s.floatingPtt) { v -> choose(v) { it.copy(floatingPtt = v) } }
+                    Toggle("Disconnect", null, s.floatingLeave) { v -> choose(v) { it.copy(floatingLeave = v) } }
+                    Hint("Visibility")
+                    Toggle("Fade when idle", "Turns see-through a few seconds after you last touched it", s.floatingFade && !s.floatingFixedOpacity) { v ->
+                        update { it.copy(floatingFade = v, floatingFixedOpacity = if (v) false else it.floatingFixedOpacity) }
+                    }
+                    Toggle("Fixed opacity", "Always stays at the opacity you choose, instead of fading", s.floatingFixedOpacity) { v -> update { it.copy(floatingFixedOpacity = v) } }
+                    if (s.floatingFixedOpacity) {
+                        Labeled("Opacity", "${(s.floatingOpacity * 100).toInt()}%") {
+                            androidx.compose.material3.Slider(s.floatingOpacity, { v -> update { it.copy(floatingOpacity = v) } }, valueRange = 0.1f..1f)
+                        }
+                    }
                 }
             }
 

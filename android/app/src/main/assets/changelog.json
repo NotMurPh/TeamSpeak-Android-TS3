@@ -1,5 +1,15 @@
 [
   {
+    "build": 24,
+    "date": "2026-11-05",
+    "title": "Your floating controls",
+    "changes": [
+      ["new", "Choose which buttons the floating controls show: mute, deafen, push to talk and disconnect."],
+      ["new", "Floating controls fade after a few seconds without being touched, and come back when you touch them. You can turn this off."],
+      ["new", "Fixed opacity: keep the floating controls at the opacity you choose, for example always see-through."]
+    ]
+  },
+  {
     "build": 23,
     "date": "2026-10-31",
     "title": "Floating controls",
